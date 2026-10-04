@@ -4,8 +4,8 @@ WorkTether preserves current project intent, work identity, decisions, evidence,
 
 | Field | Value |
 | --- | --- |
-| Version / date | 0.3 / 4 October 2026 |
-| Status | Product baseline reconciled with the prototype; new integration/optimizer requirements are proposed |
+| Version / date | 0.4 / 5 October 2026 |
+| Status | Local prompt preparation implemented; native adapters, evaluation, hosting, and client certification remain planned |
 | Deployment | Local first, then one shared hosted service |
 | Client targets | Codex, Cursor, Claude Code; Claude Desktop/web through separately verified routes |
 | History | Version 0.1 preceded implementation; [change history](CHANGELOG.md) |
@@ -65,7 +65,7 @@ Project-visible work explicitly grants project members read access. Revoking a n
 | --- | --- | --- |
 | L0 Local foundation | Stable IDs, private work, revisions, bounded context, corrections, handoffs, dashboard, real MCP. | Implemented with known limits and recorded local verification. |
 | L1 Client certification | Real Codex, Cursor, Claude Code tests with identity, conflicts, and revocation. | Planned; configuration routes are documented. |
-| L2 Prompt preparation | Inspectable prepared context/prompt, original preservation, consent, native-session mapping, selected capture. | Planned. |
+| L2 Prompt preparation/adapters | Inspectable local preparation, original preservation, consent, native-session mapping, selected capture. | Partial: manual local builder implemented; semantic evaluation, consent registry, and native adapters planned. |
 | L3 Shared pilot | HTTPS, production identity, indexed storage, team lifecycle, backups, client/OS testing. | Planned. |
 | L4 GitHub linkage | Authorized repository/commit/PR/result links. | Planned. |
 
@@ -83,6 +83,7 @@ No release promises universal transcript capture, arbitrary automatic prompt rep
 | Source ID | Selected prompt, assumption, decision, evidence, or summary with author and state. |
 | Revision ID | Immutable project/work/source state reference. |
 | Context ID | Exact saved package and its work/project revisions. |
+| Prompt draft ID | Personal original-preserving prepared text with method, format, and context/source baseline. |
 | Handoff ID | Immutable selected delivery and mutable receipt/revocation state. |
 | Native session / turn mapping | Proposed adapter record; not equivalent to an MCP connection identifier. |
 
@@ -96,11 +97,13 @@ Current `clientReference` is an optional opaque string. It is not a verified nat
 
 A person registers, creates a project, records shared requirements, and creates private work. The owner adds registered collaborators by email when needed. Invitation delivery is planned. The person connects a personal MCP credential, selects work, explicitly creates a conversation, and records selected sources. Before continuing, the assistant retrieves current context and inspects requirements, warnings, and next action. Progress updates use the expected revision.
 
-### Prepare a prompt — L2 target
+### Prepare a prompt — implemented local workflow
 
-After an explicit project/work selection and capture consent, the service preserves the original prompt, assembles current permitted context, and proposes a structured preparation. The UI shows changed text, omitted material, unresolved questions, source/revision references, and policy version. The user can accept the proposal or use the original. Any approved automatic mode is scoped to a client/project and restricted to transformations demonstrated to preserve intent.
+Open permitted work and its **Prompt builder**, enter an original request, choose a response format, and prepare a personal draft. The server preserves the request verbatim, creates current authorized context, and composes a local envelope with goals, requirements, sources, warnings, corrections, omissions, and provenance. The UI separates original input from added context and generated text. No external AI call or semantic rewrite occurs.
 
-A client hook may add context or observe submissions only where its documented API supports that action. It cannot be assumed to rewrite the user's prompt. Manual preparation/copy is the fallback. Nothing in the prototype intercepts every model request.
+The person confirms review before copying. Copy re-fetches current access/freshness; editor-only explicit save requires review assertion and a current baseline, storing the original request as a proposed prompt source with preparation metadata/dependencies. The full assembled draft stays personal instead of being nested into future source context. Saving increments the work revision, making that draft historical. See [Prompt builder](PROMPT_BUILDER.md).
+
+Native-session capture, automatic delivery, semantic transformation/diffs, accept/reject registry, and measured task-quality improvement remain future work. Client hooks require separate supported/authorized integrations; nothing intercepts every model request.
 
 ### Collaborate
 
@@ -141,12 +144,12 @@ FR01–FR20 retain their original identifiers. The table records actual status i
 | FR17 | Attributed audit records for important changes, corrections, grants, and handoffs with permission-filtered viewing. | Implemented L0; hosted audit/export administration L3. |
 | FR18 | Revoke sessions/credentials/devices/grants/handoffs; deny future controlled retrieval including contexts/files. | Implemented L0; account-wide session administration L3. |
 | FR19 | Persist IDs/state/revisions/permissions/handoffs across restart. | Implemented L0; backup/recovery operations L3. |
-| FR20 | Responsive browser overview/work/context/sources/history/inbox/graph/access/connections; clear states and keyboard-operable actions. | Partial: core UI verified; formal accessibility audit pending. |
+| FR20 | Responsive browser overview/work/context/prompt-builder/sources/history/handoffs/dependencies/members/connections; clear states, reviewable actions, reduced-motion behavior. | Partial: local UI implemented/reviewed; formal accessibility audit pending. |
 | FR21 | Durable conversation capture attribution plus native session/turn mapping unique by authenticated integration scope, with idempotent lifecycle. | Partial: explicit conversations implemented; adapters/mapping L2. |
 | FR22 | Exclude/restore current sources with reason/revision; preserved history and dependency review flags. | Implemented L0. |
-| FR23 | Preserve original prompt; prepared variant has diff, policy version, context snapshot and source/revision provenance; approval/rejection recorded. | Planned L2. |
+| FR23 | Preserve original prompt; prepared variant has inspectable additions, method version, context/source provenance and review before use. Extend to semantic diff and accept/reject registry when needed. | Partial L2: personal local drafts, review-gated copy, and reviewed proposed-source save implemented; semantic diff/evaluation and rejection registry planned. |
 | FR24 | Client-specific setup, capability matrix, version/OS/auth evidence; sanitized configs; Claude surfaces separated. | Setup CLI and stdio bridge implemented; real client certification L1. |
-| FR25 | Opt-in capture/preparation; choose project/work explicitly; handle unsupported hooks, uncertainty, timeout, and changed permissions visibly. | Planned L2. |
+| FR25 | Explicit capture/preparation; choose project/work; handle stale/revoked access, unsupported hooks, uncertainty, and timeout visibly. | Partial L2: explicit local preparation and access/freshness failures implemented; native capture/consent and host fallback planned. |
 | FR26 | One authoritative shared deployment for multiple physical machines with per-person identity, HTTPS, indexed storage, restore, and tested clients. | Planned L3; documented migration. |
 | FR27 | User export, retention/deletion, membership removal, credential lifecycle, and operator policies before broader hosted use. | Planned L3. |
 | FR28 | GitHub App or reviewed connector with scoped repository authority; immutable commit/PR links and deduplicated verified events. | Planned L4. |
@@ -154,7 +157,7 @@ FR01–FR20 retain their original identifiers. The table records actual status i
 
 ## 8 MCP and client requirements
 
-HTTP and the implemented stdio bridge expose the same 18-tool surface, specified in [FSD](FSD.md). Tool names/schemas must match implementation; proposed tools must be visibly marked unavailable. Credentials map to authenticated users, not model-supplied actor IDs. Tool annotations are hints for hosts, not permission enforcement.
+HTTP and the implemented stdio bridge expose the same 20-tool surface, specified in [FSD](FSD.md). Tool names/schemas must match implementation; proposed tools must be visibly marked unavailable. Credentials map to authenticated users, not model-supplied actor IDs. Tool annotations are hints for hosts, not permission enforcement.
 
 An MCP server exposes operations called by a client. It does not inherently receive all prompts, native chat identifiers, transcripts, host system instructions, model outputs, or usage counters. MCP transport sessions are not durable conversation identity. Hooks or client extensions add separate capabilities and consent obligations.
 
@@ -164,13 +167,13 @@ On connection the host should discover tools; a person can then request workspac
 
 ## 9 Prompt preparation and relevance
 
-The default preparation should organize a request around objective, exact constraints, deliverable, acceptance checks, current authorized state, unresolved questions, and next action. It should remove exact redundant copies where safe and select task-relevant records; it must not invent facts, narrow scope silently, remove negative constraints, convert guesses into facts, or choose a different objective.
+Current preparation preserves original wording and adds the selected response format plus a compact current-context projection. Goals, requirements, next action, warnings, corrections, omissions, and source IDs/revisions remain visible. Repeated internal source metadata is omitted from the added projection; the full snapshot remains persisted. This is deterministic organization, not semantic ambiguity/conflict detection or intent interpretation.
 
-The original text is authoritative evidence of the user's request and remains preserved. A suspected conflict is presented for resolution rather than normalized away. A prepared prompt is a proposal, not a new accepted project baseline. The user can reject it and continue with the original.
+The original is evidence of what the user requested and is never overwritten. The envelope asks the receiving model to surface conflicts and distinguish assumptions from evidence; it cannot guarantee compliance. Prepared text is a draft, not an accepted requirement baseline. The user can leave it unused or copy the original instead. Explicit reviewed save creates only a proposed source containing the original request.
 
 Existing selection uses the chosen work, state, and recency; there is no semantic reranker or LLM optimizer. Future semantic retrieval should be evaluated against a deterministic baseline. Summaries must retain source and requirement revisions and become reviewable when dependencies change. Arbitrary archival text is never promoted to host instruction authority solely because it was retrieved.
 
-Byte savings and task quality are separate measures. Actual tokens depend on the model/tokenizer and complete client request; the current service measures compact JSON UTF-8 bytes only. Measure any new preparation overhead, including optional model calls, before claiming a cost benefit.
+Byte savings and task quality are separate measures. Actual tokens depend on the model/tokenizer and complete client request; the service reports compact context bytes and complete prepared-text UTF-8 bytes separately. Measure any new preparation overhead, including optional model calls, before claiming a cost benefit.
 
 ## 10 UI requirements
 
@@ -182,21 +185,21 @@ The opening dashboard prioritizes permitted work, requirement changes/reviews, n
 | Work | Objective, owner/state/revision, current requirements, sources, next action, explicit continuation. |
 | Context | Package ID/revisions/budget, warnings, source reasons, omissions, saved snapshot/stale state. |
 | Conversations | WorkTether ID, owner, title, optional client reference; future native mapping/capture status. |
-| Inbox | Sender/recipient, exact selected snapshot, delivery/review/stale state, acknowledge action. |
-| Graph | Bounded recorded neighborhood, labeled relations, permitted omission information, record list. |
+| Handoffs | Sender/recipient, exact selected snapshot, delivery/review/stale state, acknowledge action. |
+| Dependencies | Bounded recorded neighborhood, labeled relations, permitted omission information, record list. |
 | Connections | Device/client labels, last observed request, credential creation/revocation, setup guide. |
-| Access/history | Membership, grants, immutable changes, correction/review evidence, explicit ownership changes. |
-| Preparation — planned | Original/proposed diff, preserved constraints, provenance, consent/capture mode, accept/reject. |
+| Project members / Sharing / History | Project membership, work grants, immutable changes, correction/review evidence, explicit ownership changes. |
+| Prompt builder | Original input, format choice, inspectable added context, personal draft ID/provenance, review/freshness gate, copy and editor-only save. Native capture/diffs/evaluation remain planned. |
 
 Graphs answer questions such as which recorded conclusions need review after a correction. They are not complete organization maps. Charts must label what is counted; verified evidence is a recorded status, not a factual accuracy score. Prompt/token charts require measured usage or clearly labeled estimates.
 
-[Dashboard concept](assets/dashboard-concept.png) and [connection concept](assets/connection-concept.png) are illustrative designs. [Current dashboard](assets/dashboard-local.jpg) and [mobile connection setup](assets/connections-mobile.jpg) show the local prototype with sample records.
+[Dashboard concept](assets/dashboard-concept.png) and [connection concept](assets/connection-concept.png) are illustrative designs. [Current dashboard](assets/dashboard-local.jpg) and [mobile connection setup](assets/connections-mobile.jpg) show an earlier local UI with sample records; they do not certify the version 0.4 layout.
 
 ## 11 Privacy, guardrails, and retention
 
 Apply [GR01–GR18](GUARDRAILS.md). Server authorization is authoritative; client instructions cannot grant access. Filter before ranking and counting. Recheck permission on historical contexts/files/handoffs. Do not leak hidden dependents through counts or graph nodes.
 
-Project requirements are intentionally shared; private work and its source records require ownership, grants, or explicit project visibility. Handoffs disclose only selected immutable payloads. A recipient may copy already received content; revocation controls future service retrieval. A running model may retain old context after a correction.
+Project requirements are intentionally shared; private work and its source records require ownership, grants, or explicit project visibility. Prepared drafts are additionally restricted to their author; explicitly saved originals become normal work-readable sources. Preparing persists personal input locally even without source saving; draft deletion/retention controls are absent. Handoffs disclose only selected immutable payloads. A recipient may copy already received content; revocation controls future service retrieval. A running model may retain old context after a correction.
 
 Opt-in adapters should capture the smallest approved fields. Full transcripts, unrelated projects, local files, provider secrets, and hidden model reasoning are excluded by default. Selected imported content remains untrusted data. Scanning, encryption-at-rest administration, user export, retention/deletion, and account lifecycle are hosted/adapter requirements where applicable, not features already delivered.
 
@@ -226,12 +229,12 @@ Original AC01–AC13 are preserved, with gaps identified. [VALIDATION.md](VALIDA
 | AC08 | Identical handoff retry deduplicates; changed payload conflicts. | Local evidence. |
 | AC09 | Restart preserves work/history/permissions/delivery state. | Store restart evidence. |
 | AC10 | Graph/chart scope and empty/truncated state are understandable and permission-filtered. | Domain tests + browser review; accessibility audit pending. |
-| AC11 | Real SDK discovery and authenticated workflow; errors stay structured. | HTTP and stdio evidence, 18 tools; real host L1. |
+| AC11 | Real SDK discovery and authenticated workflow; errors stay structured. | HTTP and stdio evidence, 20 tools; real host L1. |
 | AC12 | Mobile/desktop core journeys and keyboard interaction are usable. | 1440/375px review; formal accessibility audit pending. |
 | AC13 | Measured workload/report has machine, samples, scope, p50/p95. | Local synthetic benchmark only. |
 | AC14 | Explicit conversation capture cannot impersonate another contributor; native adapters deduplicate resume/turn events. | Explicit capture tested; native mapping L2. |
 | AC15 | Exclusion changes current context, retains history, flags dependents, and restoration needs review. | Local evidence. |
-| AC16 | Preparation preserves original and every mandatory constraint, showing changes and unresolved ambiguity. | Planned paired evaluation L2. |
+| AC16 | Preparation preserves original and mandatory context, exposes additions/review information, prevents stale unauthorized save, and retains provenance. | Local domain checks cover preservation/privacy/freshness/save; semantic ambiguity handling and paired task-quality evaluation remain L2. |
 | AC17 | Each claimed client route is tested with exact version/OS/auth, including failure/revocation. | Planned L1; official docs alone insufficient. |
 | AC18 | Adapter timeout/unsupported host/ambiguous work produces visible fallback, with no false saved/synchronized claim. | Planned L2. |
 | AC19 | Shared multi-machine deployment passes isolation, migration, backup restore, and concurrent-write checks. | Planned L3. |
@@ -241,8 +244,8 @@ Original AC01–AC13 are preserved, with gaps identified. [VALIDATION.md](VALIDA
 
 1. Maintain this requirements baseline and traceable documentation.
 2. Certify explicit MCP workflows in real Codex, Cursor, and Claude Code clients.
-3. Design/review preparation records, consent, native identity mapping, and retry contracts before runtime changes.
-4. Implement deterministic preparation with original-preserving diff and meaningful evaluation.
+3. Maintain the implemented personal local composer, original/provenance checks, and reviewed-save contract.
+4. Evaluate representative tasks against the original/manual workflow before making quality or cost claims; design semantic assistance and native consent/mapping contracts separately.
 5. Add one opt-in adapter at a time; verify native hook input/output and failure behavior.
 6. Harden shared identity, indexed storage, team lifecycle, and restore; migrate while retaining IDs.
 7. Test actual macOS/Windows collaborators against one hosted service.

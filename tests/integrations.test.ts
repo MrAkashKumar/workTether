@@ -108,13 +108,17 @@ test('real stdio process forwards all tools, preserves private identity, convers
   };
   try {
     const a = await connect(akash.id), m = await connect(maya.id), modern = await connect(akash.id, true);
-    for (const c of [a.client, m.client, modern.client]) assert.equal((await c.listTools()).tools.length, 18);
+    for (const c of [a.client, m.client, modern.client]) assert.equal((await c.listTools()).tools.length, 20);
     const call = (c: Client, name: string, args: any) => c.callTool({ name, arguments: args }) as Promise<any>;
     assert.equal((await call(m.client, 'get_work_context', { workId: work.id })).structuredContent.error.code, 'NOT_FOUND');
     const conversation = (await call(a.client, 'create_conversation', { workId: work.id, title: 'Client continuation' })).structuredContent;
     const prompt = (await call(a.client, 'record_source', { workId: work.id, conversationId: conversation.id, kind: 'prompt', title: 'Selected request', content: 'Preserve requirements.' })).structuredContent;
     const context = (await call(modern.client, 'get_work_context', { workId: work.id })).structuredContent;
     assert.equal(context.sources.find((s: any) => s.id === prompt.id).conversationId, conversation.id);
+    const draft = (await call(a.client, 'prepare_prompt', { workId: work.id, originalRequest: ' Explain clearly. No code. ', conversationId: conversation.id })).structuredContent;
+    assert.equal(draft.originalRequest, ' Explain clearly. No code. ');
+    assert.equal((await call(modern.client, 'get_prepared_prompt', { promptId: draft.id })).structuredContent.preparedText, draft.preparedText);
+    assert.equal((await call(m.client, 'get_prepared_prompt', { promptId: draft.id })).structuredContent.error.code, 'NOT_FOUND');
     const conflict = await call(a.client, 'record_progress', { workId: work.id, expectedRevision: 1, nextAction: 'Stale update' });
     assert.equal(conflict.structuredContent.error.code, 'REVISION_CONFLICT');
     runtime.store.execute(akash.id, 'revoke_credential', { credentialId: a.credential.id });

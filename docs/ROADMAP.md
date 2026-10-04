@@ -1,12 +1,12 @@
 # Delivery roadmap and agenda
 
-Version 0.2 · 4 October 2026. Phases are ordered by dependencies, not promised dates. All future functionality below requires implementation and evidence. Read [PRD](PRD.md) for stable requirements and [validation](VALIDATION.md) for release checks.
+Version 0.4 · 5 October 2026. Phases are ordered by dependencies, not promised dates. All future functionality below requires implementation and evidence. Read [PRD](PRD.md) for stable requirements and [validation](VALIDATION.md) for release checks.
 
 ## Phase 0 — Documentation and local foundation
 
-**Current:** local prototype and recorded tests exist. This documentation revision defines BRD/PRD/FSD, diagrams, guardrails, client setup, and prompt identity/preparation architecture.
+**Current:** local prototype, tested HTTP/stdio bridge, setup CLI, simplified responsive UI, and original-preserving local prompt builder exist. Documentation covers BRD/PRD/FSD, diagrams, guardrails, client setup, prompt identity/preparation and recorded verification.
 
-**Exit:** document links/config templates validate; current catalog matches 18 tools; all claims distinguish current, partial, planned, and certified. No active client configuration or runtime behavior changes are needed for this documentation phase.
+**Exit:** document links/config templates validate; current catalog matches 20 tools; all claims distinguish current, partial, planned, and certified. Runtime evidence and actual-client certification must remain distinct; prepared config templates still require personal activation.
 
 ## Phase 1 — Certify explicit client workflows
 
@@ -18,11 +18,11 @@ Version 0.2 · 4 October 2026. Phases are ordered by dependencies, not promised 
 
 ## Phase 2A — Prepare prompts without automatic capture
 
-**Agenda:** agree on original/prepared/consent records and versioned proposed contracts. Implement deterministic organization and current context assembly, a visible diff, acceptance/rejection, freshness checks, and provenance. Keep manual/tool invocation as the baseline.
+**Delivered local baseline:** personal drafts with verbatim original, versioned local context projection, format selection, visible added context/warnings/provenance, review-gated fresh manual copy, and editor-only reviewed original-source save. Two MCP tools prepare/retrieve; browser/API list/save remain separate. Original-source saving avoids assembled-context nesting. See [Prompt builder](PROMPT_BUILDER.md).
 
-**Deliverables:** prompt preparation panel, source/context revision linkage, bounded failure behavior, representative evaluation dataset, and results compared with original/manual workflow.
+**Remaining agenda:** evaluate representative tasks against original/manual workflow, independently assess retained constraints and editing effort, design an explicit accept/reject registry if useful, and add draft retention/deletion controls. No external semantic rewriting is currently implemented.
 
-**Exit:** AC16 passes; originals and all mandatory constraints retained; uncertainty/conflict is not erased; no unsupported token/cost/accuracy claim. Optional model assistance is a later experiment requiring explicit consent and overhead measurement.
+**Exit:** local preservation/privacy/freshness tests pass; paired evaluation covers ambiguous/conflicting requirements and malicious sources before quality claims. Optional model assistance is a later explicitly consented experiment requiring constraint checks, measured latency/cost, and visible failures. Existing byte measurements alone do not establish token or accuracy benefits.
 
 ## Phase 2B — Opt-in native adapters
 

@@ -1,5 +1,14 @@
 # Documentation change history
 
+## 0.4 — 5 October 2026
+
+- Simplified responsive navigation to Overview, Work, Handoffs, and Connections, with Dependencies, Activity, and Project members kept available. Added readable context, full-ID copying, clearer privacy labels, three-step client setup, vibrant accents, and restrained motion with reduced-motion support.
+- Implemented personal local prompt drafts preserving original wording, response-format choices, authenticated current context, exact inspectable compact additions, method/provenance, warnings/corrections/omissions, and review-gated fresh manual copy. No external AI call or automatic submission.
+- Added explicit editor-only reviewed save: the original request becomes a proposed source with provenance/dependencies; the full assembled draft stays personal, avoiding repeated context nesting. Saving advances the baseline and makes that draft historical.
+- Added MCP `prepare_prompt` and `get_prepared_prompt`; current HTTP/stdio catalog has 20 tools. Listing/reviewed save are browser/API actions.
+- Added three prompt-domain tests: 24 tests pass, production build passes, and live HTTP/stdio smoke checks each discover 20 tools and retrieve authenticated work.
+- Rewrote the root README around quick start and actual setup; added the prompt builder guide and reconciled current/planned scope across product, contracts, architecture and guardrails. Actual-client certification, native adapters, semantic efficacy evaluation, retention controls and hosted/GitHub work remain pending.
+
 ## 0.3 — 4 October 2026
 
 - Moved the entire application, dependencies, docs and preserved local data into `WorkTether/`.

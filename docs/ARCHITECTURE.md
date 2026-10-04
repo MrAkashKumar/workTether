@@ -1,6 +1,6 @@
 # Architecture and diagrams
 
-Version 0.3 · 4 October 2026. Diagrams describe the current local service or explicitly labeled future components. Requirements are in [PRD](PRD.md); contracts are in [FSD](FSD.md). Mermaid source stays inside these documents for review and versioning.
+Version 0.4 · 5 October 2026. Diagrams describe the current local service or explicitly labeled future components. Requirements are in [PRD](PRD.md); contracts are in [FSD](FSD.md). Mermaid source stays inside these documents for review and versioning.
 
 ## D1 — Current local architecture
 
@@ -18,9 +18,11 @@ flowchart LR
   A --> R[Revision and context operations]
   R --> S[(SQLite JSON records and WAL)]
   R --> Q[Saved context and selected handoffs]
+  R --> P[Personal prompt drafts]
+  P --> V[Reviewed original-source save]
 ```
 
-The browser is presentation, not the authority. MCP dispatches the same domain operations. Local files and the SQLite database are trusted operator resources. Source/handoff text remains untrusted content. The stdio bridge is a transport adapter, not native chat capture. No native chat adapter or prompt optimizer is present in D1.
+The browser is presentation, not the authority. MCP dispatches the same domain operations. Local files and the SQLite database are trusted operator resources. Source/handoff text remains untrusted content. The stdio bridge is a transport adapter, not native chat capture. The local original-preserving composer shares domain permissions; no native chat adapter, external AI optimizer, or automatic delivery is present.
 
 ## D2 — Explicit MCP continuation today
 
@@ -67,6 +69,9 @@ erDiagram
   CONVERSATION |o--o{ SOURCE : attributes
   WORK ||--o{ SOURCE : records
   WORK ||--o{ CONTEXT : snapshots
+  WORK ||--o{ PREPARED_PROMPT : prepares
+  USER ||--o{ PREPARED_PROMPT : privately_authors
+  CONTEXT ||--o{ PREPARED_PROMPT : references
   WORK ||--o{ HANDOFF : selected_delivery
   USER ||--o{ DEVICE : registers
   DEVICE ||--o{ CREDENTIAL : authenticates
@@ -75,29 +80,29 @@ erDiagram
 
 Sources may omit conversation linkage today. Conversation metadata follows work read access, while recording against a conversation requires its owner attribution. Native session mappings are proposed separate records scoped by deployment, person, integration, and native session identity. An MCP transport session ID is not included as durable work identity.
 
-## D4 — Prompt preparation target, L2
+## D4 — Implemented local prompt preparation
 
-**Why needed:** make the missing adapter visible and keep the original request separate from a prepared proposal.
+**Why needed:** show what gets persisted, how current authorized context is added, and why copying and saving are separate actions.
 
 ```mermaid
 flowchart TD
-  P[Original user prompt] --> O[Explicit opt-in adapter or manual preparation]
-  O --> X{Approved project and work selected?}
-  X -->|No| F[Visible selection or original-prompt fallback]
-  X -->|Yes| N[Bind native session and capture selected turn]
-  N --> A[Authorize and retrieve current context]
-  A --> R[Preserve constraints and provenance]
-  R --> T[Proposed preparation with diff and warnings]
-  T --> U{Accept or approved bounded mode?}
-  U -->|Reject| F
-  U -->|Accept| V{Host supports delivery method?}
-  V -->|Yes| H[Add context or submit reviewed text using supported API]
-  V -->|No| K[Manual preview and copy]
-  H --> E[Record delivery state and work outcome]
-  K --> E
+  U[Original request and chosen format] --> A[Authenticate selected work and own optional conversation]
+  A --> C[Build current permitted context snapshot]
+  C --> P[Compact labeled context projection]
+  U --> D[Personal draft with fixed original and composed text]
+  P --> D
+  C --> D
+  D --> R[Inspect original, added context, warnings and revisions]
+  R --> V{Confirm review}
+  V --> F[Recheck current access and freshness]
+  F --> K[Manual copy into chosen AI client]
+  V --> E{Editor saving under current baseline?}
+  E --> S[Original request becomes proposed source]
+  S --> M[Provenance and recorded dependencies]
+  S --> H[Work revision advances; draft is historical]
 ```
 
-Every node beyond the manual/current context path is proposed. Capture, preparation, and execution are distinct decisions. Hooks that accept context are not assumed to permit arbitrary prompt replacement. Failure handling must follow actual host behavior, documented in [integrations](INTEGRATIONS.md).
+Method `worktether-local-2` runs without external AI calls. The full context remains stored separately from the added projection. Personal draft content is fixed; save-link metadata is updated after explicit save. The original-source save avoids nesting full assembled context into later context. Its source follows work permissions; the full draft remains author-private. Draft freshness compares current work/project baselines. [PROMPT_BUILDER.md](PROMPT_BUILDER.md) describes review/access gates and limits.
 
 ## D5 — Correction and delivery lifecycle
 
@@ -140,13 +145,31 @@ flowchart LR
 
 Every request is attributed to a person. Work grants and selected deliveries remain distinct. Cloud-origin clients need a network-reachable verified route; local 127.0.0.1 cannot be reused as a shared endpoint. [HOSTING.md](HOSTING.md) defines migration and deployment gates.
 
+## D7 — Future native adapter and semantic assistance
+
+**Why needed:** keep host capture/delivery capabilities visibly separate from the implemented manual composer.
+
+```mermaid
+flowchart LR
+  H[Supported host event] --> O[Explicit scoped capture consent]
+  O --> N[Verified native-session and event mapping]
+  N --> C[Current local composer or opt-in evaluated semantic mode]
+  C --> R[Diff, constraint checks and explicit decision registry]
+  R --> D[Supported host delivery or visible manual fallback]
+  D --> E[Observed delivery and task outcome]
+```
+
+All native-event, consent-registry, semantic-mode, decision-registry and host-delivery components in D7 remain planned. A hook that adds context is not assumed to rewrite arbitrary prompts. Host timeout/truncation and model-quality evidence require separate tests; see [integrations](INTEGRATIONS.md).
+
 ## UI and chart interpretation
 
-The [current dashboard](assets/dashboard-local.jpg) and [mobile connections view](assets/connections-mobile.jpg) show the implemented UI using sample data. The [dashboard concept](assets/dashboard-concept.png) and [connection concept](assets/connection-concept.png) are design references, not observed connected machines.
+The [refined dashboard](assets/dashboard-refined.jpg) and [local prompt builder](assets/prompt-builder-local.jpg) show the version 0.4 browser using sample records. Earlier [dashboard](assets/dashboard-local.jpg) and [mobile connections](assets/connections-mobile.jpg) screenshots remain historical evidence. The [dashboard concept](assets/dashboard-concept.png) and [connection concept](assets/connection-concept.png) are design references, not observed connected machines.
 
-![Local WorkTether dashboard with sample project records](assets/dashboard-local.jpg)
+![Refined local WorkTether dashboard with sample project records](assets/dashboard-refined.jpg)
 
-The evidence chart counts readable current project records in explicit evidence states. It measures recorded evidence state, not model accuracy. The graph is a bounded recorded neighborhood: current limits are 80 nodes and 160 edges. A readable relationship list complements the visualization. Future prompt preparation should add an original/proposed diff and visible capture/mapping status rather than an unexplained optimization score.
+![Local original-preserving prompt builder with reviewable added context](assets/prompt-builder-local.jpg)
+
+The evidence chart counts readable current project records in explicit evidence states. It measures recorded evidence state, not model accuracy. The graph is a bounded recorded neighborhood: current limits are 80 nodes and 160 edges. A readable relationship list complements the visualization. The current Prompt builder exposes preserved original input, exact added context, warnings/provenance, and complete generated text. It has no quality score. Semantic changed-span diffs and native capture/mapping status remain future work. The responsive redesign uses clearer navigation, vibrant accents, short interaction transitions and reduced-motion support; formal accessibility certification is pending.
 
 ## Architecture decisions
 
@@ -157,5 +180,7 @@ The evidence chart counts readable current project records in explicit evidence 
 | Explicit capture first | Less accidental collection; more deliberate user effort until adapters prove useful. |
 | Immutable snapshots and revisions | Reviewable state and safe conflict handling; archive storage grows. |
 | Bounded deterministic context | Inspectable selection and preserved constraints; weaker relevance than a proven semantic retriever. |
+| Local original-preserving composition | No external provider dependency; inspectable additions and private draft identity. Semantic rewrite/quality improvement is unproven. |
+| Save original instead of envelope | Prevents repeated nested packages; full personal draft and provenance remain retrievable separately. |
 | Local SQLite prototype | Simple durable start; JSON scans need replacement before large hosted use. |
 | Git separate from context history | Code remains in repository versions; future links connect intent to commits without replacing Git. |

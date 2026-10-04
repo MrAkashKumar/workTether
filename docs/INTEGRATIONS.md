@@ -1,6 +1,6 @@
 # Codex, Cursor, and Claude integrations
 
-Version 0.3 · Official references checked 4 October 2026. **Configuration documented is not client certification.** Current verification uses real SDK clients over HTTP and spawned stdio processes on this Mac. Setup generates local project configs; global installed-client settings have not been changed.
+Version 0.4 · 5 October 2026; official references checked 4 October 2026. **Configuration documented is not client certification.** Current verification uses real SDK clients over HTTP and spawned stdio processes on this Mac. Setup generates local project configs; global installed-client settings have not been changed.
 
 ## 1 Compatibility and capability matrix
 
@@ -17,7 +17,7 @@ The service currently offers **tools**, not MCP prompt templates, MCP resources,
 
 ## 2 Generated local setup — implemented
 
-Start the dashboard/service. Create a personal credential in Connections, then run `npm run setup:mcp -- --client all` from the WorkTether project root and paste that credential at the hidden prompt. Setup uses it to authenticate and provisions a distinct device/credential per selected client. It never puts raw tokens in client config or console output.
+Start the dashboard/service. In **Connections**, select **Create setup credential** under step 1, then run `npm run setup:mcp -- --client all` from the WorkTether project root and paste that credential at the hidden prompt. Setup uses it to authenticate and provisions a distinct device/credential per selected client; no manual registration is required first. After successful setup, you may revoke the setup credential while retaining the separate client credentials. It never puts raw tokens in client config or console output.
 
 Generated paths are `.codex/config.toml`, `.cursor/mcp.json`, `.mcp.json`, and `.worktether/claude-desktop-config.json`. They launch the same stdio bridge using absolute Node, loader, script, and credential-file paths. The bridge forwards tool discovery/calls to the authenticated shared local HTTP service; it does not create an independent database or bypass permissions.
 
@@ -69,7 +69,7 @@ Claude remote connectors originate from Anthropic's cloud even when used in Desk
 
 ## 7 What should happen after adding MCP
 
-Successful discovery exposes the current 18 tools. Explicitly request `workspace_overview`, select a permitted project/work, and run the workflow in [PROMPT_CONTEXT.md](PROMPT_CONTEXT.md). Open the browser dashboard deliberately to inspect records and connections.
+Successful discovery exposes the current 20 tools, including `prepare_prompt` and `get_prepared_prompt`. Explicitly request `workspace_overview`, select a permitted project/work, and run the workflow in [PROMPT_CONTEXT.md](PROMPT_CONTEXT.md). Open the browser dashboard deliberately to inspect records and connections. Its **Prompt builder** prepares original-preserving local drafts for manual review/copy. An authorized client can also call `prepare_prompt` explicitly and retrieve its own draft; this is tool execution, not a prompt-submit hook. Browser/API-only reviewed save creates a proposed source. See [the guide](PROMPT_BUILDER.md).
 
 There are three separate claims to verify: the server is reachable, a credential authenticates the right person, and a tool returns the right permitted work. A green host indicator or a device label alone does not prove all three. Last observed activity means an authenticated service request, not a live machine heartbeat.
 
@@ -77,7 +77,7 @@ There are three separate claims to verify: the server is reachable, a credential
 
 For **each** claimed client, record exact name/version, OS/version, local/cloud executor, transport, auth/config scope, tool discovery, actual returned principal, continuation, conversation creation, correction/exclusion, revision conflict, selected handoff, credential revocation, host output limits, and setup/failure screenshots without secrets. Record unsupported operations separately.
 
-The first explicit-workflow test should create a private work item, then demonstrate that a second identity cannot retrieve it. Native ID mapping and prompt preparation require additional adapter tests; passing MCP discovery does not pass those gates. Windows and macOS need physical tests before broad OS support claims.
+The first explicit-workflow test should create a private work item, then demonstrate that a second identity cannot retrieve it. Native ID mapping and automatic delivery require additional adapter tests; passing MCP discovery does not pass those gates. Local preparation has domain tests, but its actual use within each claimed client still needs certification and task-quality evaluation. Windows and macOS need physical tests before broad OS support claims.
 
 ## 9 Troubleshooting
 
@@ -88,7 +88,9 @@ The first explicit-workflow test should create a private work item, then demonst
 | 403 host/origin | Use the trusted local host/origin; check configuration rather than disabling protection. |
 | Tools discovered but not used | Ask for the explicit workflow; check host tool enablement/approval. |
 | Native chat ID absent | Expected with MCP alone; use explicit Conversation ID until an adapter is implemented. |
-| Prompt not automatically prepared | Expected today; current capability is selected context assembly. |
+| Prompt not automatically prepared | Expected: use the browser Prompt builder or explicitly call `prepare_prompt`; MCP does not intercept submissions. |
+| Prepared draft stale | Work/requirements changed, including after source save; prepare a new draft. |
+| Prepared draft not found | Check your own Prompt ID and current work access; another author’s draft stays private. |
 | Revision conflict | Retrieve latest state, compare changes, then resubmit deliberately. |
 | Context cannot fit | Increase the byte budget within limits or deliberately simplify the shared baseline; do not silently drop constraints. |
 

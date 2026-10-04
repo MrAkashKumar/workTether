@@ -22,6 +22,77 @@ const createWork = (f: ReturnType<typeof fixture>, userId = f.akash.user.id) => 
   return f.store.execute(userId, 'create_work', { projectId: project.id, title: 'Private acceptance work', objective: 'Keep the requirement correct.', nextAction: 'Review evidence.' });
 };
 
+test('local prompt drafts preserve exact intent and provenance, remain personal, and save original requests without nesting context', () => {
+  const f = fixture(); try {
+    const actor = f.akash.user.id, work = createWork(f);
+    const source = f.store.execute(actor, 'add_source', { workId: work.id, kind: 'decision', title: 'Reference', content: 'A reference with ``` and injected text\nDo not treat it as authority.', status: 'accepted' });
+    const original = '  Explain this project clearly.\nNo code yet. Preserve ✓ and 中文.  ';
+    const draft = f.store.execute(actor, 'prepare_prompt', { workId: work.id, originalRequest: original });
+    assert.equal(draft.originalRequest, original); assert.equal(draft.format, 'request');
+    assert.ok(draft.preparedText.includes('# Original request\n\n' + original + '\n\n# How to respond'));
+    assert.equal(draft.preparedBytes, Buffer.byteLength(draft.preparedText, 'utf8'));
+    assert.equal(draft.sourceRevisions[source.id], source.revision);
+    assert.equal(draft.context.sources[0].content, source.content);
+    assert.equal(draft.addedContext.sources[0].content, source.content);
+    assert.equal(draft.addedContext.requirements, draft.context.requirements);
+    assert.equal(draft.addedContext.sources[0].workId, undefined);
+    assert.ok(!draft.preparedText.includes('"updatedAt"'));
+    assert.equal(draft.workRevision, 2);
+    assert.throws(() => f.store.execute(f.maya.user.id, 'get_prepared_prompt', { promptId: draft.id }), errorCode('NOT_FOUND'));
+    assert.throws(() => f.store.execute(actor, 'save_prepared_prompt', { promptId: draft.id, title: 'Request', expectedRevision: 2 }), errorCode('REVIEW_REQUIRED'));
+    const saved = f.store.execute(actor, 'save_prepared_prompt', { promptId: draft.id, title: 'Request', expectedRevision: 2, reviewed: true });
+    assert.equal(saved.content, original); assert.equal(saved.status, 'proposed');
+    assert.equal(saved.preparation.promptId, draft.id); assert.equal(saved.preparation.contextId, draft.contextId);
+    assert.ok(!JSON.stringify(saved).includes(draft.preparedText));
+    const again = f.store.execute(actor, 'save_prepared_prompt', { promptId: draft.id, title: 'Request', expectedRevision: 2, reviewed: true });
+    assert.equal(again.id, saved.id);
+    assert.throws(() => f.store.execute(actor, 'save_prepared_prompt', { promptId: draft.id, title: 'Different request', expectedRevision: 2, reviewed: true }), errorCode('IDEMPOTENCY_CONFLICT'));
+    f.restart();
+    const restored = f.store.execute(actor, 'get_prepared_prompt', { promptId: draft.id });
+    assert.equal(restored.preparedText, draft.preparedText); assert.equal(restored.stale, true);
+    const history = f.store.execute(actor, 'bootstrap').revisions.find((r: any) => r.recordId === saved.id && r.revision === 1);
+    assert.equal(history.snapshot.preparation.contextId, draft.contextId);
+  } finally { f.close(); }
+});
+
+test('prompt preparation denies private access, detects changed baselines, and rechecks edit and conversation authority', () => {
+  const f = fixture(); try {
+    const actor = f.akash.user.id, other = f.maya.user.id, work = createWork(f);
+    assert.throws(() => f.store.execute(other, 'prepare_prompt', { workId: work.id, originalRequest: 'Do something' }), errorCode('NOT_FOUND'));
+    f.store.execute(actor, 'share_work', { workId: work.id, userId: other, permission: 'read' });
+    const personal = f.store.execute(other, 'prepare_prompt', { workId: work.id, originalRequest: 'A personal draft' });
+    assert.throws(() => f.store.execute(actor, 'get_prepared_prompt', { promptId: personal.id }), errorCode('NOT_FOUND'));
+    assert.throws(() => f.store.execute(other, 'save_prepared_prompt', { promptId: personal.id, title: 'Request', expectedRevision: work.revision, reviewed: true }), errorCode('FORBIDDEN'));
+    const conversation = f.store.execute(actor, 'create_conversation', { workId: work.id, title: 'Owner chat' });
+    assert.throws(() => f.store.execute(other, 'prepare_prompt', { workId: work.id, originalRequest: 'Wrong attribution', conversationId: conversation.id }), errorCode('INVALID_CONVERSATION'));
+    const draft = f.store.execute(actor, 'prepare_prompt', { workId: work.id, originalRequest: 'Keep the requirement', conversationId: conversation.id });
+    const updated = f.store.execute(actor, 'update_work', { workId: work.id, expectedRevision: 1, nextAction: 'Changed plan' });
+    assert.equal(f.store.execute(actor, 'get_prepared_prompt', { promptId: draft.id }).stale, true);
+    assert.throws(() => f.store.execute(actor, 'save_prepared_prompt', { promptId: draft.id, title: 'Request', expectedRevision: updated.revision, reviewed: true }), errorCode('STALE_CONTEXT'));
+    f.store.execute(actor, 'revoke_grant', { workId: work.id, userId: other });
+    assert.throws(() => f.store.execute(other, 'get_prepared_prompt', { promptId: personal.id }), errorCode('NOT_FOUND'));
+    assert.throws(() => f.store.execute(other, 'list_prepared_prompts', { workId: work.id }), errorCode('NOT_FOUND'));
+  } finally { f.close(); }
+});
+
+test('prompt preparation preserves review warnings and exclusions, rejects invalid input, and rolls back insufficient budgets', () => {
+  const f = fixture(); try {
+    const actor = f.akash.user.id, work = createWork(f);
+    const source = f.store.execute(actor, 'add_source', { workId: work.id, kind: 'assumption', title: 'Old assumption', content: 'Do not reuse this', status: 'accepted' });
+    f.store.execute(actor, 'set_source_active', { sourceId: source.id, expectedRevision: 1, active: false, reason: 'Irrelevant' });
+    const draft = f.store.execute(actor, 'prepare_prompt', { workId: work.id, originalRequest: 'Review my work', format: 'review' });
+    assert.ok(draft.context.warnings.length > 0); assert.ok(!draft.context.sources.some((s: any) => s.id === source.id));
+    assert.ok(draft.preparedText.includes(draft.context.warnings[0]));
+    for (const extra of [{ originalRequest: ' ' }, { originalRequest: 'x'.repeat(20001) }, { format: '__proto__' }]) assert.throws(() => f.store.execute(actor, 'prepare_prompt', { workId: work.id, originalRequest: 'Request', ...extra }), errorCode('INVALID_INPUT'));
+    const before = f.store.execute(actor, 'list_prepared_prompts', { workId: work.id }).total;
+    assert.throws(() => f.store.execute(actor, 'prepare_prompt', { workId: work.id, originalRequest: 'Request', budgetBytes: 1 }), errorCode('BUDGET_TOO_SMALL'));
+    assert.equal(f.store.execute(actor, 'list_prepared_prompts', { workId: work.id }).total, before);
+    const project = f.store.execute(actor, 'bootstrap').project;
+    f.store.execute(actor, 'update_project', { projectId: project.id, expectedRevision: project.revision, requirements: 'New mandatory requirement' });
+    assert.equal(f.store.execute(actor, 'get_prepared_prompt', { promptId: draft.id }).stale, true);
+  } finally { f.close(); }
+});
+
 test('real sessions, local registration, credential/device revocation and metadata secrecy', () => {
   const f = fixture(); try {
     assert.equal(f.store.authenticate(f.akash.token)?.id, f.akash.user.id);

@@ -1,33 +1,18 @@
 # WorkTether
 
-WorkTether is a local project workspace and authenticated MCP service for continuing AI work across conversations, collaborators, and clients. Stable IDs connect requirements, work, selected prompts, decisions, evidence, context snapshots, and handoffs. Work is private by default; collaboration uses explicit grants or selected deliveries.
+Keep project requirements, useful sources, and next steps together across AI conversations. WorkTether runs locally, gives each work item a stable ID, and connects Codex, Cursor, and Claude through authenticated MCP tools.
 
-**Working name:** WorkTether. Name, domain, and trademark availability have not been established. **Documentation:** version 0.3, 4 October 2026. This README stays at the project root. Detailed project documentation lives in `docs/`.
+Work is private by default. Share selected handoffs or grant work access deliberately. The new **Prompt builder** preserves your request and adds current project context for you to inspect and copy.
 
-## Clear agenda and reading order
+## Project agenda
 
-1. Define the problem and success measures: [BRD](docs/BRD.md).
-2. Agree on product scope, requirements, and release gates: [PRD](docs/PRD.md).
-3. Review components, trust boundaries, and diagrams: [architecture](docs/ARCHITECTURE.md).
-4. Review implemented behavior and proposed contracts: [FSD](docs/FSD.md).
-5. Connect a client: [Codex, Cursor, and Claude integrations](docs/INTEGRATIONS.md).
-6. Understand IDs and prompt preparation: [prompt and context lifecycle](docs/PROMPT_CONTEXT.md).
-7. Review enforcement and remaining safeguards: [guardrails](docs/GUARDRAILS.md).
-8. Check evidence and next steps: [validation](docs/VALIDATION.md), [implementation](docs/IMPLEMENTATION.md), [roadmap](docs/ROADMAP.md), and [shared hosting](docs/HOSTING.md).
-
-[Sources](docs/SOURCES.md) records official references; [change history](docs/CHANGELOG.md) records documentation changes. BR, FR, AC, and GR identifiers provide precise references across people and clients.
-
-## Current product and next design
-
-The prototype provides a React dashboard, Express API, SQLite store, and 18 authenticated MCP tools through HTTP or a local stdio bridge. Implemented features include stable IDs, immutable revisions, bounded context snapshots, corrections, reversible source exclusions, protected attachments, and durable handoffs. Browser and MCP operations share domain permissions.
-
-Context assembly selects current permitted records for a Work ID, preserving requirements and reporting omissions and warnings. This is context engineering. Prompt engineering still matters for instructions.
-
-**Designed next:** opt-in native chat ID adapters and prompt preparation with an inspectable diff. These are not implemented. Connecting MCP does not automatically capture every prompt, rewrite it, obtain the host chat ID, or open the dashboard. Official setup routes are documented for Codex, Cursor, and Claude Code; real-client certification is pending. Claude Desktop/web have separate deployment requirements in the integration guide.
+1. **Now:** run locally, keep stable work IDs, review context and prepare prompts, and share selected handoffs.
+2. **Next:** verify workflows inside the actual Codex, Cursor, and Claude clients, then evaluate prompt quality on representative tasks.
+3. **Later:** add secure shared hosting for many people and machines, opt-in native adapters, and GitHub integration. See the [roadmap](docs/ROADMAP.md) for release gates.
 
 ## Run locally
 
-Requires Node.js 22.13 or newer with `node:sqlite`. The verified runtime was Node 22.23.1, which prints an experimental SQLite warning. Run from the `WorkTether` project root:
+Requires **Node.js 22.13 or newer** with `node:sqlite`. Run these commands from the `WorkTether` folder:
 
 ```sh
 npm ci
@@ -35,65 +20,66 @@ npm run build
 npm start
 ```
 
-Open [the dashboard](http://127.0.0.1:4318). MCP endpoint: `http://127.0.0.1:4318/mcp`. The server binds to loopback. A second physical computer needs the later [shared deployment](docs/HOSTING.md).
+Open [WorkTether](http://127.0.0.1:4318). Keep the server running while using the dashboard or MCP. The default MCP endpoint is `http://127.0.0.1:4318/mcp`.
 
-For development, `npm run dev` runs the API on 4318 and Vite on 5173. Open `http://127.0.0.1:5173`. Rebuild and restart after production source changes.
+For development, use `npm run dev` and open `http://127.0.0.1:5173`. After production source changes, rebuild and restart. The verified Node 22.23.1 runtime prints an experimental SQLite warning.
 
-A first empty database seeds `akash@worktether.local`, `maya@worktether.local`, and `ravi@worktether.local`, using sample password `worktether-local-2026`. These are examples; create an account/project for actual work. Set `WORKTETHER_SEED=false` with a **new** database path to start without samples. This does not remove existing data.
+An empty database includes these sample accounts, all using password `worktether-local-2026`:
 
-## Connect Codex, Cursor, or Claude
+- `akash@worktether.local`
+- `maya@worktether.local`
+- `ravi@worktether.local`
 
-Keep `npm start` running. In the dashboard, sign in as yourself and create a WorkTether credential in **Connections**. In a second terminal, from the `WorkTether` folder, run:
+Samples are examples. Create your own account and project for actual work. To start without samples, set `WORKTETHER_SEED=false` with a **new** database path; this does not delete existing records.
+
+## Connect your AI client
+
+1. Sign in as yourself. Open **Connections** and choose **Create setup credential**. Copy it when shown.
+2. In a second terminal, from the WorkTether folder, run the following command and paste the credential at its hidden prompt.
+3. Open and trust this folder in your client, reconnect MCP, and verify that the returned workspace belongs to your account.
 
 ```sh
 npm run setup:mcp -- --client all
 ```
 
-Paste that credential at the hidden prompt. Setup creates separate personal client registrations/credentials and these local configurations:
+Choose one client with `--client codex`, `cursor`, `claude-code`, or `claude-desktop`.
 
-| Client | Generated configuration |
+| Client | Setup writes |
 | --- | --- |
 | Codex | `.codex/config.toml` |
 | Cursor | `.cursor/mcp.json` |
 | Claude Code | `.mcp.json` |
-| Claude Desktop | `.worktether/claude-desktop-config.json` to merge into Desktop's local server config |
+| Claude Desktop | `.worktether/claude-desktop-config.json` — merge its entry into Desktop's local config and restart |
 
-Open/trust this **WorkTether** folder in the client and reconnect MCP. Claude Desktop requires the separate merge/restart step in [the integration guide](docs/INTEGRATIONS.md). A single client can be selected with `--client codex`, `cursor`, `claude-code`, or `claude-desktop`.
+Setup provisions a separate registration and credential for each selected client. You do not need to register clients manually first. After successful setup, you may revoke the setup credential; the new client credentials are separate.
 
-Configurations are generated in this checkout, contain absolute local paths, and preserve other server entries. Personal tokens stay in ignored `.worktether/connections/` files with restricted permissions on POSIX systems. They are plaintext local credentials, not OS-keychain storage; Windows access depends on folder ACLs. Never share that directory. Setup refuses conflicting entries or existing credentials rather than replacing them silently.
+The generated configurations use absolute local paths. Personal plaintext credentials live in ignored `.worktether/connections/` files with restricted POSIX permissions; Windows protection depends on folder ACLs. Never commit or share that directory. Setup preserves other server entries and refuses conflicting configurations or existing credential files. Configuration-only templates still require activation.
 
-The checked-out client configs were generated in **configuration-only** mode: they are ready for credential activation, not signed into an account. `--configure-only` can regenerate configuration templates without provisioning credentials. Direct HTTP remains available using the documented environment-based examples. Neither transport automatically intercepts prompts or maps native chat IDs.
+See the [integration guide](docs/INTEGRATIONS.md) for Desktop's merge step, direct HTTP configuration, custom ports, moved folders, and recovery. SDK transport tests pass; certification inside the actual Codex, Cursor, and Claude applications remains pending.
 
-## First useful workflow
+## Your first workflow
 
-1. Create an account/project and record the objective and shared requirements.
-2. Create private work; keep its full Work ID for continuation.
-3. Register a client/device in Connections and generate a personal MCP credential. Follow the [client setup guide](docs/INTEGRATIONS.md).
-4. Explicitly create a WorkTether conversation for this work. Record selected prompts and sources under its Conversation ID.
-5. Retrieve current context before continuing. Inspect revisions, warnings, omissions, and next action. Record progress with the expected revision.
-6. Correct or exclude unsuitable sources by ID and revision; review recorded dependents.
-7. Add a registered collaborator to the project, select a handoff recipient/content, preview it, and send. This does not grant all private work access or run their machine.
+1. Create a project, record its goal and requirements, and create a work item. Keep its full **Work ID**.
+2. Save useful prompts, decisions, assumptions, or evidence in **Sources**. Optionally create a WorkTether conversation to attribute selected records.
+3. Open **Prompt builder**, write your request, and choose a response format. Select **Prepare prompt**.
+4. Inspect the added context, warnings, omitted sources, and revisions. Confirm your review, then copy the prepared prompt into your AI client. Editors can explicitly save the original request as a proposed source.
+5. Record the next step, correct or exclude unsuitable sources, and prepare fresh context before continuing. Use **Handoffs** to share selected content with a project member.
 
-[Example continuation instruction](docs/examples/continuation-instruction.md) is a manual template, not an installed client policy.
+The [prompt builder guide](docs/PROMPT_BUILDER.md) explains personal draft IDs, saved-source visibility, freshness, and provenance. The **Context** view also builds readable packages with complete JSON available to inspect or copy.
 
-## Configuration and storage
+Preparation runs locally without an external AI call. It adds a structured envelope; it does not rewrite meaning, automatically intercept chats, submit prompts, or verify facts. MCP installation does not supply the client's native chat ID. The [continuation template](docs/examples/continuation-instruction.md) is an optional manual instruction.
 
-The server reads process environment; it does not load `.env` automatically. Supply settings through the shell or process manager.
+## Storage and limits
 
-The sanitized [local environment template](docs/examples/local.env.example) documents these values; copying it alone does not configure the running process.
+Data defaults to `data/worktether.sqlite`, relative to the process working directory. Keep the database, WAL sidecars, credentials, and build output out of version control. Use SQLite online backup or stop writes before copying the database. Detailed settings are in the [environment template](docs/examples/local.env.example); the server reads process environment and does not automatically load `.env`.
 
-| Variable | Default / purpose |
-| --- | --- |
-| `PORT` | `4318`; update client URLs and trusted origins if changed. |
-| `WORKTETHER_DB` | `data/worktether.sqlite`, relative to the process working directory. |
-| `WORKTETHER_SEED` | Enabled unless exactly `false`. |
-| `WORKTETHER_ORIGINS` | **Comma-separated** trusted origins; defaults cover localhost and 127.0.0.1 on 4318 and 5173. |
+The service binds to this computer's loopback address. Other physical machines need the planned [shared deployment](docs/HOSTING.md), with their own identities. Do not synchronize independent SQLite files to simulate collaboration.
 
-Connections displays the default endpoint; use the configured URL for a custom port. Keep database files, WAL sidecars, credentials, and build output out of version control. Protected attachments accept text, Markdown, PDF, PNG, and JPEG up to 5 MiB each. They are not automatically parsed into context.
+Current limits include JSON-record scans, bounded pages and graphs, no automatic attachment parsing, no user export/deletion UI, and unverified hosted capacity. Drafts persist locally; review what you enter. Copying a prepared prompt to an AI provider is your separate choice. Revocation blocks future service retrieval and cannot recall copied text. GitHub, hosted OAuth, native adapters, and remote execution remain future work.
 
-Use SQLite online backup or stop writes before copying the database. Copying only the main file during WAL writes can omit recent changes. Multiple machines should connect to one shared service rather than synchronize independent SQLite databases.
+Byte counts are UTF-8 serialization measurements, not model tokens. Recorded evidence states and prompt preparation do not guarantee accuracy, absence of bias, or cost savings.
 
-## Verification and limits
+## Check the project
 
 ```sh
 npm test
@@ -102,8 +88,19 @@ npm run check:mcp
 npm run check:stdio
 ```
 
-Tests bind a local port. The smoke check needs a running server and creates/revokes a temporary credential without printing it. Set `WORKTETHER_EMAIL` and `WORKTETHER_PASSWORD` when samples are disabled. `npm run benchmark` uses an isolated temporary database and replaces [benchmark-results.json](docs/benchmark-results.json).
+The smoke checks need a running server and create/revoke temporary credentials. Set `WORKTETHER_EMAIL` and `WORKTETHER_PASSWORD` when sample accounts are disabled. The current catalog contains **20 tools**; see [validation](docs/VALIDATION.md) for verification results and their scope.
 
-The latest application verification recorded 21 passing tests, a successful build, and 18 discovered tools. Documentation changes do not certify new client integrations. See [validation](docs/VALIDATION.md).
+## Documentation
 
-There is one local workspace with multiple users/projects. The JSON-record database scans records; large hosted capacity is unestablished. Graphs represent recorded dependencies and charts represent evidence states. Byte budgets measure context serialization, not model tokens. No guarantee of accuracy or absence of bias is made. GitHub, hosted OAuth, automatic capture/optimization, and remote execution remain future work.
+This README stays at the project root. Detailed documents are in `docs/`.
+
+| Purpose | Document |
+| --- | --- |
+| Problem, agenda, and product requirements | [BRD](docs/BRD.md), [PRD](docs/PRD.md) |
+| Components, contracts, and diagrams | [FSD](docs/FSD.md), [architecture](docs/ARCHITECTURE.md) |
+| Prompt preparation and continued identity | [Prompt builder](docs/PROMPT_BUILDER.md), [prompt/context lifecycle](docs/PROMPT_CONTEXT.md) |
+| Client setup and access safeguards | [Integrations](docs/INTEGRATIONS.md), [guardrails](docs/GUARDRAILS.md) |
+| Evidence and next work | [Implementation](docs/IMPLEMENTATION.md), [validation](docs/VALIDATION.md), [roadmap](docs/ROADMAP.md), [hosting](docs/HOSTING.md) |
+| References and release history | [Sources](docs/SOURCES.md), [change history](docs/CHANGELOG.md) |
+
+Documentation version **0.4 · 5 October 2026**. WorkTether is a working name; name, domain, and trademark availability have not been established.

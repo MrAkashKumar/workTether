@@ -1,5 +1,6 @@
 import { DatabaseSync } from 'node:sqlite';
 import { createHash, randomBytes, randomUUID, scryptSync, timingSafeEqual } from 'node:crypto';
+import { compactPromptContext, composePrompt, promptFormats, promptMethod } from './prompts';
 
 export class DomainError extends Error {
   constructor(public status: number, public code: string, message: string, public details: any = undefined) {
@@ -18,7 +19,7 @@ const string = (value: any, field: string, max = 100_000, allowEmpty = false): s
   if (typeof value !== 'string' || (!allowEmpty && !value.trim()) || value.length > max) fail(400, 'INVALID_INPUT', `${field} must be ${allowEmpty ? 'a' : 'a nonempty'} string of at most ${max} characters.`);
   return value;
 };
-const actions = new Set(['bootstrap', 'list_works', 'list_sources', 'create_project', 'update_project', 'add_member', 'create_work', 'update_work', 'create_conversation', 'list_conversations', 'add_source', 'correct_source', 'resolve_review', 'set_source_active', 'get_context', 'get_context_snapshot', 'get_graph', 'share_work', 'revoke_grant', 'reassign_work', 'send_handoff', 'list_inbox', 'get_handoff', 'acknowledge_handoff', 'mark_handoff_read', 'revoke_handoff', 'register_device', 'revoke_device', 'create_credential', 'revoke_credential', 'get_attachment', 'add_attachment']);
+const actions = new Set(['prepare_prompt', 'get_prepared_prompt', 'list_prepared_prompts', 'save_prepared_prompt', 'bootstrap', 'list_works', 'list_sources', 'create_project', 'update_project', 'add_member', 'create_work', 'update_work', 'create_conversation', 'list_conversations', 'add_source', 'correct_source', 'resolve_review', 'set_source_active', 'get_context', 'get_context_snapshot', 'get_graph', 'share_work', 'revoke_grant', 'reassign_work', 'send_handoff', 'list_inbox', 'get_handoff', 'acknowledge_handoff', 'mark_handoff_read', 'revoke_handoff', 'register_device', 'revoke_device', 'create_credential', 'revoke_credential', 'get_attachment', 'add_attachment']);
 const mimeTypes = new Set(['text/plain', 'text/markdown', 'application/pdf', 'image/png', 'image/jpeg']);
 
 /** Durable local domain store. Every exposed operation checks the authenticated actor. */
@@ -192,6 +193,42 @@ export class Store {
           devices: this.all('device').filter(d => d.userId === userId), credentials: this.all('credential').filter(c => c.userId === userId).map(c => this.publicCredential(c)),
           events: this.all('event').filter(e => (!project || e.projectId === project.id || !e.projectId) && (e.handoffId ? handoffIds.has(e.handoffId) || e.actorId === userId : e.workId ? workIds.has(e.workId) : e.projectId ? this.isMember(userId, e.projectId) : e.actorId === userId)).slice(-100).reverse() };
       }
+      case 'prepare_prompt': {
+        const w = this.work(userId, p.workId);
+        const originalRequest = string(p.originalRequest, 'originalRequest', 20000);
+        const format = p.format ?? 'request';
+        if (!Object.hasOwn(promptFormats, format)) fail(400, 'INVALID_INPUT', 'Choose a supported response format.');
+        if (p.conversationId !== undefined) {
+          const conversation = this.get('conversation', p.conversationId);
+          if (!conversation || conversation.workId !== w.id || conversation.ownerId !== userId) fail(400, 'INVALID_CONVERSATION', 'Choose one of your conversations associated with this work.');
+        }
+        const snapshot = this.context(userId, w.id, p.budgetBytes);
+        const addedContext = compactPromptContext(snapshot);
+        const preparedText = composePrompt(originalRequest, format as keyof typeof promptFormats, addedContext);
+        const draft = this.put('prepared_prompt', { id: id('pmt'), actorId: userId, workId: w.id, projectId: w.projectId, conversationId: p.conversationId ?? null, originalRequest, format, method: promptMethod, preparedText, preparedBytes: Buffer.byteLength(preparedText, 'utf8'), contextId: snapshot.id, context: snapshot, addedContext, workRevision: w.revision, projectRevision: snapshot.projectRevision, sourceRevisions: Object.fromEntries([...snapshot.sources, ...snapshot.corrections].map((source: RecordData) => [source.id, source.revision])), createdAt: now(), savedSourceId: null });
+        return { ...draft, stale: false };
+      }
+      case 'get_prepared_prompt': return this.preparedPrompt(userId, p.promptId);
+      case 'list_prepared_prompts': {
+        this.work(userId, p.workId);
+        const items = this.all('prepared_prompt').filter(draft => draft.actorId === userId && draft.workId === p.workId).reverse().map(draft => ({ id: draft.id, workId: draft.workId, createdAt: draft.createdAt, format: draft.format, savedSourceId: draft.savedSourceId }));
+        return this.page(items, p.offset, p.limit, 10, 100);
+      }
+      case 'save_prepared_prompt': {
+        const draft = this.preparedPrompt(userId, p.promptId);
+        const w = this.work(userId, draft.workId, 'edit');
+        const title = string(p.title, 'title', 200);
+        if (p.reviewed !== true) fail(400, 'REVIEW_REQUIRED', 'Review the original request, added context, and warnings before saving.');
+        if (draft.savedSourceId) {
+          if (draft.savedTitle !== title) fail(409, 'IDEMPOTENCY_CONFLICT', 'This draft was already saved with a different title.');
+          return this.source(userId, draft.savedSourceId);
+        }
+        this.expected(w, p.expectedRevision);
+        if (draft.stale) fail(409, 'STALE_CONTEXT', 'The work or requirements changed. Prepare a new draft before saving.');
+        const source = this.addSource(userId, { workId: w.id, kind: 'prompt', title, content: draft.originalRequest, status: 'proposed', dependsOn: Object.keys(draft.sourceRevisions), ...(draft.conversationId ? { conversationId: draft.conversationId } : {}) }, { promptId: draft.id, method: draft.method, format: draft.format, contextId: draft.contextId, workRevision: draft.workRevision, projectRevision: draft.projectRevision, sourceRevisions: draft.sourceRevisions, reviewedBy: userId, reviewedAt: now() });
+        this.put('prepared_prompt', { ...draft, savedSourceId: source.id, savedTitle: title });
+        return source;
+      }
       case 'list_works': return this.workPage(userId, p.projectId, p);
       case 'list_sources': return this.sourcePage(userId, p.workId, p);
       case 'create_project': {
@@ -243,18 +280,7 @@ export class Store {
         this.audit(userId, action, { workId: w.id, projectId: w.projectId, conversationId: conversation.id }); return conversation;
       }
       case 'list_conversations': { this.work(userId, p.workId); return this.page(this.all('conversation').filter(c => c.workId === p.workId).reverse(), p.offset, p.limit, 100, 200); }
-      case 'add_source': {
-        const w = this.work(userId, p.workId, 'edit');
-        if (p.conversationId !== undefined) { const conversation = this.get('conversation', p.conversationId); if (!conversation || conversation.workId !== w.id || conversation.ownerId !== userId) fail(400, 'INVALID_CONVERSATION', 'Choose one of your conversations associated with this work.'); }
-        if (!['prompt', 'assumption', 'decision', 'evidence', 'summary'].includes(p.kind)) fail(400, 'INVALID_INPUT', 'Unknown source kind.');
-        const status = p.status ?? 'proposed'; if (!['proposed', 'accepted', 'verified', 'needs_review'].includes(status)) fail(400, 'INVALID_INPUT', 'Unknown source status.');
-        const dependencies = p.dependsOn ?? []; if (!Array.isArray(dependencies) || dependencies.length > 100 || dependencies.some(x => typeof x !== 'string')) fail(400, 'INVALID_INPUT', 'dependsOn must be at most 100 source IDs.');
-        for (const dependency of dependencies) { const parent = this.source(userId, dependency); const parentWork = this.work(userId, parent.workId); if (parentWork.projectId !== w.projectId) fail(400, 'INVALID_INPUT', 'Dependencies must belong to the same project.'); }
-        const s = this.put('source', { id: id('src'), workId: w.id, conversationId: p.conversationId ?? null, kind: p.kind, title: string(p.title, 'title', 200), content: string(p.content, 'content'), status, active: true, revision: 1, supersedesId: null, authorId: userId, createdAt: now() });
-        for (const parentId of [...new Set<string>(dependencies)]) this.put('edge', { id: id('edge'), from: parentId, to: s.id, kind: 'depends_on' });
-        this.touch({ ...w, needsReview: w.needsReview || status === 'needs_review' }); this.staleHandoffs(w.id);
-        this.audit(userId, action, { workId: w.id, projectId: w.projectId, sourceId: s.id }); return s;
-      }
+      case 'add_source': return this.addSource(userId, p);
       case 'correct_source': {
         const s = this.source(userId, p.sourceId, 'edit'); this.expected(s, p.expectedRevision); if (s.status === 'superseded') fail(409, 'ALREADY_SUPERSEDED', 'Correct the current replacement source.');
         const content = string(p.content, 'content'), reason = string(p.reason, 'reason', 2000);
@@ -404,6 +430,26 @@ export class Store {
       }
       case 'get_attachment': return this.attachment(userId, p.attachmentId);
     }
+  }
+  private preparedPrompt(userId: string, promptId: string): RecordData & { stale: boolean } {
+    const draft = this.get('prepared_prompt', promptId) ?? fail(404, 'NOT_FOUND', 'Prompt draft not found.');
+    if (draft.actorId !== userId) fail(404, 'NOT_FOUND', 'Prompt draft not found.');
+    const w = this.work(userId, draft.workId);
+    const project = this.project(userId, w.projectId);
+    return { ...draft, stale: w.revision !== draft.workRevision || project.revision !== draft.projectRevision };
+  }
+  private addSource(userId: string, p: RecordData, preparation?: RecordData) {
+
+        const w = this.work(userId, p.workId, 'edit');
+        if (p.conversationId !== undefined) { const conversation = this.get('conversation', p.conversationId); if (!conversation || conversation.workId !== w.id || conversation.ownerId !== userId) fail(400, 'INVALID_CONVERSATION', 'Choose one of your conversations associated with this work.'); }
+        if (!['prompt', 'assumption', 'decision', 'evidence', 'summary'].includes(p.kind)) fail(400, 'INVALID_INPUT', 'Unknown source kind.');
+        const status = p.status ?? 'proposed'; if (!['proposed', 'accepted', 'verified', 'needs_review'].includes(status)) fail(400, 'INVALID_INPUT', 'Unknown source status.');
+        const dependencies = p.dependsOn ?? []; if (!Array.isArray(dependencies) || dependencies.length > 100 || dependencies.some(x => typeof x !== 'string')) fail(400, 'INVALID_INPUT', 'dependsOn must be at most 100 source IDs.');
+        for (const dependency of dependencies) { const parent = this.source(userId, dependency); const parentWork = this.work(userId, parent.workId); if (parentWork.projectId !== w.projectId) fail(400, 'INVALID_INPUT', 'Dependencies must belong to the same project.'); }
+        const s = this.put('source', { id: id('src'), workId: w.id, conversationId: p.conversationId ?? null, kind: p.kind, title: string(p.title, 'title', 200), content: string(p.content, 'content'), status, active: true, revision: 1, supersedesId: null, authorId: userId, createdAt: now(), ...(preparation ? { preparation } : {}) });
+        for (const parentId of [...new Set<string>(dependencies)]) this.put('edge', { id: id('edge'), from: parentId, to: s.id, kind: 'depends_on' });
+        this.touch({ ...w, needsReview: w.needsReview || status === 'needs_review' }); this.staleHandoffs(w.id);
+        this.audit(userId, 'add_source', { workId: w.id, projectId: w.projectId, sourceId: s.id }); return s;
   }
   private attachment(userId: string, attachmentId: string) {
     const a = this.get('attachment', attachmentId); const w = a && this.get('work', a.workId);

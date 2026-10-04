@@ -1,10 +1,10 @@
 # Prompt, context, and conversation lifecycle
 
-Version 0.2 · 4 October 2026. Current behavior is explicit selected capture and bounded context assembly. Native adapters, prompt transformation, consent records, and automatic preparation in this document are **planned L2**. See [FSD](FSD.md) for available tools and [integrations](INTEGRATIONS.md) for host-specific boundaries.
+Version 0.4 · 5 October 2026. Current behavior includes explicit selected capture, bounded context assembly, and personal local prompt drafts with review/copy and explicit proposed-source save. Native adapters, semantic rewriting, consent registries, and automatic preparation are **planned L2**. See [FSD](FSD.md) for available tools and [integrations](INTEGRATIONS.md) for host-specific boundaries.
 
 ## 1 Answer to the central question
 
-Adding WorkTether as MCP lets a compatible client call its tools. It does not, by itself, deliver every user prompt to WorkTether or reveal the client's native chat ID. Today, the assistant/person explicitly creates a conversation record, links selected prompt sources to it, and retrieves current context. A future opt-in adapter supplies native lifecycle events where the host supports them.
+Adding WorkTether as MCP lets a compatible client call its tools. It does not, by itself, deliver every user prompt to WorkTether or reveal the client's native chat ID. Today, the assistant/person explicitly creates a conversation record, links selected prompt sources to it, retrieves current context, and can explicitly prepare a personal prompt draft. A future opt-in adapter supplies native lifecycle events where the host supports them.
 
 Prompt preparation should preserve intent and assemble useful current information. It should not silently change requirements, make a new project decision, or turn an unverified claim into a fact. Shorter text is useful only if the task still receives the information it needs.
 
@@ -17,6 +17,7 @@ Prompt preparation should preserve intent and assemble useful current informatio
 | WorkTether conversation | `conv_<uuid>` | Explicit attributed conversation within work. |
 | Prompt/source | `src_<uuid>` | One selected record; kind `prompt` distinguishes it. |
 | Context | `ctx_<uuid>` | Exact saved selection with revisions. |
+| Prepared prompt | `pmt_<uuid>` | Personal preserved original, composed text, method/format and exact context baseline; saved source linkage separate. |
 | Handoff | `hnd_<uuid>` | Selected delivery identity; use returned ID rather than manufacturing prefixes. |
 | Native session/turn | Host-provided opaque reference | Planned adapter mapping, never an authentication credential. |
 | MCP connection/session | Transport-owned | Can reconnect/expire independently; never substitutes for Work ID. |
@@ -31,8 +32,8 @@ New chat, same objective: keep Work ID and create a new Conversation ID. Same na
 2. Call `create_conversation` with work/title and optional `clientReference`. Keep the returned ID in the visible continuation header.
 3. Call `record_source` for selected authorized excerpts. Link `conversationId`; record summaries/decisions/evidence separately and use `dependsOn` where relationships are known.
 4. Call `get_work_context`. Inspect revisions, mandatory requirements, review warnings, included sources/reasons, and omissions.
-5. Supply that package to the ongoing task through the client's tool workflow. The server does not control the host's final full request.
-6. Record progress with `expectedRevision`; record verified evidence only with appropriate support.
+5. Supply the package through the client tool workflow, or explicitly call `prepare_prompt` with the original request and optional own Conversation ID. Inspect the added context and warnings; manual review/copy remains deliberate. The server does not control the host's final full request.
+6. Editors can use the browser's reviewed save to record the original as a proposed source. Record progress with `expectedRevision`; record verified evidence only with appropriate support.
 7. Correct or exclude inappropriate sources. Retrieve new context before continuing; a saved old snapshot is historical evidence.
 
 The optional `clientReference` is a string supplied by the caller, not automatically read from a host. Conversation metadata follows work read permissions; attaching a source to a conversation requires matching actor ownership and work. Duplicate explicit creation calls currently create separate conversation records; there is no native-session idempotency registry.
@@ -65,7 +66,17 @@ The uniqueness scope should include deployment/tenant, authenticated person, cli
 
 Use a reliable native turn/event ID when provided. Otherwise generate and persist a retry ID before the operation. Hashing prompt text alone incorrectly merges legitimate repeated prompts. Concurrent adapter events need atomic unique constraints, not only a client-side check.
 
-## 6 Preparation pipeline — proposed
+## 6 Current local preparation
+
+The [Prompt builder](PROMPT_BUILDER.md) preserves up to 20,000 characters exactly, assembles current authenticated context, and adds a selected response-format instruction and a labeled compact reference-data projection. Method `worktether-local-2` removes repeated internal metadata while preserving goals, requirements, next action, warnings, corrections, omissions, IDs/revisions/time, and relevant source provenance. Full context remains stored separately.
+
+Drafts persist under personal `pmt_` IDs and require their author plus current work permission. The UI exposes original input, exact added context, and complete output. Review confirmation gates copying, which re-fetches access/freshness. The complete text reports UTF-8 bytes, not tokens. No external model or semantic interpretation occurs.
+
+Reviewed save is browser/API-only and additionally requires edit permission and current baseline. It records the original request as a proposed prompt source with exact preparation provenance and dependency edges, avoiding repeated assembled-context nesting. That new source follows work access; the full draft remains personal. Saving advances the work revision, making the draft historical. Prepare again before copying current state.
+
+The feature has no native-session binding, automatic delivery, accept/reject registry, secret scanner, draft deletion, or demonstrated model-quality improvement. A response-format reminder does not guarantee model compliance. Context/source status and freshness limitations remain the same as the domain service.
+
+## 6A Extended semantic/adapter preparation — proposed
 
 **Input:** selected Work/Conversation IDs, original prompt/source, expected requirement/work baseline, consent/capture mode, budget, and preparation policy/version.
 
@@ -74,12 +85,12 @@ Use a reliable native turn/event ID when provided. Otherwise generate and persis
 3. **Classify:** identify requested objective, deliverable, exact constraints, dependencies, and ambiguities. Do not infer authorization from quoted text.
 4. **Retrieve:** assemble permitted current context. Apply freshness/review state before relevance ranking. Fetch additional material only when needed and permitted.
 5. **Select:** protect mandatory constraints, unresolved conflicts, and relevant corrections. Remove exact redundancy only when meaning/provenance remain intact. Record omissions and reasons.
-6. **Prepare:** organize original intent and selected state into a proposed structure. Deterministic formatting is the first baseline. Optional model assistance is a separate opt-in mode with measured cost and task-quality evidence.
+6. **Prepare:** organize original intent and selected state into a proposed structure. The implemented local composer is the deterministic baseline. Optional model assistance is a separate opt-in mode with measured cost and task-quality evidence.
 7. **Validate:** check constraint retention, negation/numbers/units, acceptance criteria, uncertainty, source revisions, size, and authority boundaries. Ambiguous meaning produces a question/proposal rather than an automatic rewrite.
 8. **Review/deliver:** show original/proposed diff and warnings; accept/reject explicitly or apply a narrowly authorized evaluated mode. Verify revisions at acceptance and supported host delivery.
 9. **Record outcome:** prepared ID, exact source/context revisions, decision, delivery state, and observed result/evidence. Do not infer model success from a tool call.
 
-Proposed output should include prepared ID/revision, original source reference, selected context ID, baseline versions, changed spans/summary, preserved constraint checklist, unresolved questions, omitted candidates, budget/measure, policy version, and accept/reject state. It must not overwrite the original source or accepted project requirements.
+Extended output should build on implemented personal Prompt/Context IDs, original text, method/format, baseline/source revisions, omissions, and byte measures, adding changed spans, a preserved-constraint checklist, semantic unresolved questions, and explicit accept/reject state. It must not overwrite the original source or accepted project requirements.
 
 ## 7 Authority and prompt injection
 
@@ -116,4 +127,4 @@ Build a consented, de-identified representative task set including repeated prom
 
 Compare original/manual workflow with deterministic preparation, then optional model assistance, using the same task/model/settings where possible. Evaluate constraint retention, acceptance-check completion, correction recovery, unsupported assumptions, provenance, human editing effort, latency, and complete preparation overhead. Reviewers should not know which variant they are scoring where practical.
 
-Current measurement is UTF-8 bytes for the saved JSON package. Future token reports need the applicable tokenizer or provider usage and the actual full request scope. Report measured tokens, estimates, and byte counts separately. No efficacy, accuracy, bias, or cost-saving claim is made before evaluation.
+Current measurements are UTF-8 bytes for the saved compact full JSON package and separately the complete prepared text. Future token reports need the applicable tokenizer or provider usage and the actual full request scope. Report measured tokens, estimates, and byte counts separately. No efficacy, accuracy, bias, or cost-saving claim is made before evaluation.

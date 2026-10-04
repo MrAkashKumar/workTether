@@ -1,8 +1,9 @@
 {
-  "checkedAt": "2026-10-04T10:25:47.176893+00:00",
-  "scope": "WorkTether relocation, root README, documentation and generated local client configuration; application verification recorded separately",
-  "markdownFiles": 15,
-  "relativeLinksChecked": 106,
+  "checkedAt": "2026-10-04T17:02:02.054966+00:00",
+  "documentationVersion": "0.4",
+  "scope": "WorkTether root README, documentation, examples and generated local client configuration; application and browser verification recorded separately",
+  "markdownFiles": 16,
+  "relativeLinksChecked": 129,
   "missingRelativeLinks": [],
   "unbalancedCodeFences": [],
   "headingSpacingIssues": [],
@@ -39,30 +40,58 @@
     }
   ],
   "environmentTemplateOriginDelimiter": "comma",
-  "mcpToolCatalogCount": 18,
+  "mcpToolCatalogCount": 20,
   "catalogMatchesImplementation": true,
   "businessRequirements": 10,
   "functionalRequirements": 29,
   "acceptanceScenarios": 20,
   "guardrails": 18,
   "unknownRequirementReferences": [],
-  "canonicalArchitectureDiagrams": 6,
+  "canonicalArchitectureDiagrams": 7,
   "projectMarkdownOutsideDocs": [
     "README.md"
   ],
   "applicationVerification": {
-    "testsPassed": 21,
+    "testsPassed": 24,
     "testsFailed": 0,
+    "storeTests": 19,
+    "httpTests": 1,
+    "integrationTests": 4,
     "productionBuild": "passed",
-    "liveHttpSmoke": "passed; 18 tools and authenticated workspace",
-    "liveStdioSmoke": "passed; 18 tools and authenticated workspace",
+    "liveHttpSmoke": "passed; 20 tools and authenticated workspace",
+    "liveStdioSmoke": "passed; 20 tools and authenticated workspace",
     "realThirdPartyClientCertification": "pending"
+  },
+  "browserVerification": {
+    "desktopViewportWidth": 1440,
+    "desktopPageWidth": 1440,
+    "mobileViewportWidth": 375,
+    "mobilePageWidth": 375,
+    "flows": [
+      "overview",
+      "local prompt prepare/retrieve",
+      "review gate",
+      "edited input invalidates preview",
+      "mobile More navigation",
+      "client-specific setup command",
+      "setup form without credential creation"
+    ],
+    "capturedWarningOrErrorEntries": 0,
+    "viewportOverrideReset": true,
+    "screenshots": [
+      "docs/assets/dashboard-refined.jpg",
+      "docs/assets/prompt-builder-local.jpg",
+      "docs/assets/connections-refined-mobile.jpg"
+    ]
   },
   "limitations": [
     "Mermaid blocks checked structurally, not rendered",
     "Relative link file targets checked; individual heading anchors not certified",
     "Generated configuration syntax and local launch paths checked; actual third-party clients and Windows not certified",
     "Earlier benchmark retained without regeneration",
-    "Client configuration is prepared; personal credential activation is pending"
+    "Client configuration is prepared; personal credential activation is pending",
+    "Browser spot checks are not a formal accessibility audit",
+    "Local preparation preserves original requests and adds context; semantic model quality, bias and token savings have not been evaluated",
+    "Draft freshness compares current work/project revisions rather than every external dependency"
   ]
 }

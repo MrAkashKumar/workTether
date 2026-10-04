@@ -1,6 +1,6 @@
 # Functional Specification Document
 
-Version 0.3 · 4 October 2026. This document specifies the current prototype and separately names proposed L2 contracts. [PRD](PRD.md) is the product baseline; [architecture](ARCHITECTURE.md) explains the components. Code references below are implementation evidence, not configuration files to copy into a client.
+Version 0.4 · 5 October 2026. This document specifies the current prototype and separately names proposed L2 contracts. [PRD](PRD.md) is the product baseline; [architecture](ARCHITECTURE.md) explains the components. Code references below are implementation evidence, not configuration files to copy into a client.
 
 ## 1 Current components and invariants
 
@@ -11,7 +11,8 @@ Version 0.3 · 4 October 2026. This document specifies the current prototype and
 | [server/mcp.ts](../server/mcp.ts) | Official SDK HTTP adapter, typed tool inputs, domain dispatch, structured tool errors. |
 | [server/stdio.ts](../server/stdio.ts) | Official SDK stdio bridge; forwards to the authenticated HTTP service without owning a database. |
 | [integrations/config.ts](../integrations/config.ts), [setup CLI](../scripts/setup-mcp.ts) | Local config generation and separate personal credential provisioning; no global config overwrite. |
-| [src/App.tsx](../src/App.tsx) | Permitted browser views and deliberate user actions. |
+| [server/prompts.ts](../server/prompts.ts) | Versioned deterministic context projection/composition without external AI calls. |
+| [src/App.tsx](../src/App.tsx), [workflow](../src/workflow.tsx), [PromptBuilder](../src/PromptBuilder.tsx) | Permitted browser views, responsive navigation, readable context and deliberate prompt review/copy/save. |
 
 The domain derives the actor from authenticated request state. Every exposed operation checks project/work authority. Changing surface from browser to MCP does not change ownership or grant rules. SQLite `BEGIN IMMEDIATE` transactions protect multi-record mutations. There is one local workspace; multi-organization tenancy is unimplemented.
 
@@ -38,6 +39,7 @@ The setup CLI creates a device/credential for each selected client and writes ab
 | Edge | Identified directed relationship; dependency, correction/supersession, or graph containment as applicable. |
 | Revision | Immutable snapshot keyed by entity, record ID, and revision number. |
 | Context | Identified immutable serialized package with selected sources and work/project revisions. |
+| Prepared prompt | `pmt_` ID, actor/work/project, optional own conversation, verbatim original, format/method, fixed prepared text, added context projection, full context snapshot and ID, baseline/source revisions, prepared bytes, time; saved-source/title linkage is updated after explicit save. |
 | Grant | Work/user relationship with read or edit authority. |
 | Handoff | Sender/recipient/project/work, selected immutable payload, retry identity, receipt state, staleness/revocation metadata. |
 | Device / credential | Personal labels, last authenticated observation, revocation; credential stores hash rather than raw token. |
@@ -50,7 +52,7 @@ Sources: `prompt`, `assumption`, `decision`, `evidence`, `summary`. Current stat
 
 ## 4 Current MCP tool catalog
 
-Names match the 18 registrations in `server/mcp.ts`. `?` means optional; inputs are strict schemas. Identifiers are nonempty strings up to 100 characters at the MCP boundary. Ordinary content fields are capped at 100,000 characters, titles at 200, and correction/exclusion reasons at 2,000. Limits are validation bounds, not recommended model context sizes.
+Names match the 20 registrations in `server/mcp.ts`. `?` means optional; inputs are strict schemas. Identifiers are nonempty strings up to 100 characters at the MCP boundary. Ordinary content fields are capped at 100,000 characters, titles at 200, and correction/exclusion reasons at 2,000. Limits are validation bounds, not recommended model context sizes.
 
 | Tool | Inputs | Result / authority |
 | --- | --- | --- |
@@ -72,8 +74,10 @@ Names match the 18 registrations in `server/mcp.ts`. `?` means optional; inputs 
 | `list_conversations` | `workId`, `offset?/limit?` | Conversation metadata for accessible work, including collaborators' records in that work. |
 | `get_context_snapshot` | `contextId` | `{snapshot, stale}` under current work access; historical content remains immutable. |
 | `set_source_active` | `sourceId`, `expectedRevision`, `active`, `reason` | Exclude or restore a current source; history and dependency review preserved. |
+| `prepare_prompt` | `workId`, `originalRequest` (1–20,000 characters, nonblank), `format?` (`request`, `plan`, `review`, `explain`), own `conversationId?`, `budgetBytes?` | Persists personal original-preserving local draft and context; work read access, no external call/submission. |
+| `get_prepared_prompt` | `promptId` | Author-only draft retrieval plus current work permission; reports work/project baseline staleness. |
 
-Read annotations are hints; context generation persists a record and handoff retrieval changes recipient delivery state. There is no MCP tool named `optimize_prompt`, `prepare_prompt`, `capture_turn`, or `bind_native_session` in the current catalog.
+Read annotations are hints; context generation persists a record and handoff retrieval changes recipient delivery state. `prepare_prompt` persists a personal draft and context. There is no MCP tool named `optimize_prompt`, `save_prepared_prompt`, `list_prepared_prompts`, `capture_turn`, or `bind_native_session` in the current catalog.
 
 Work pages default to 40 and cap at 100. Source pages default/cap at 200. Conversation pages default to 100 and cap at 200. Inbox pages default to 40 and cap at 100. Pages identify returned items, offsets/limits, and permitted totals. Bootstrap contains bounded work/source/history/handoff views; follow page metadata rather than assuming completeness.
 
@@ -89,7 +93,7 @@ Work pages default to 40 and cap at 100. Source pages default/cap at 200. Conver
 | `POST /api/action` | `{action,input}` dispatch to the same domain service. |
 | `GET /api/attachments/:id` | Authorized attachment download, attachment disposition and nosniff. |
 
-Additional domain actions available through the API/browser include project create/update, add member, work grants/revocation/reassignment, handoff revocation, device/credential management, and attachment upload/download. They are **not all exposed as MCP tools**. Use `server/store.ts` for the exact action validation before adding a new API consumer.
+Additional domain actions available through the API/browser include project create/update, add member, work grants/revocation/reassignment, handoff revocation, device/credential management, and attachment upload/download. They are **not all exposed as MCP tools**. Use `server/store.ts` for the exact action validation before adding a new API consumer. Prompt actions also include `list_prepared_prompts` (own metadata; offset/limit, default ten, maximum 100) and `save_prepared_prompt` (`promptId`, `title`, `expectedRevision`, `reviewed:true`). These two actions are API/browser-only, unlike prepare/get.
 
 File MIME allowlist: `text/plain`, `text/markdown`, `application/pdf`, `image/png`, `image/jpeg`; maximum decoded size 5 MiB. Metadata listing does not return file bytes. No OCR, content parsing, malware scan, or attachment MCP upload tool is implemented.
 
@@ -106,6 +110,18 @@ File MIME allowlist: `text/plain`, `text/markdown`, `application/pdf`, `image/pn
 Package fields include `id`, `workId`, `workRevision`, `projectRevision`, objective/project objective/requirements/next action, warnings, corrections, sources, omitted information, `budgetBytes`, `bytesUsed`, `sizeMeasure`, and creation time. Included source entries carry IDs, revision/provenance, and selection reasons. Omission details contain at most the documented sample of permitted IDs, not hidden-record counts.
 
 Historical snapshot retrieval rechecks current permission and reports staleness when the current work/project revision differs. This is not a comprehensive check of every external dependency, native chat, or copied package. The caller must retrieve current context before a new decision.
+
+## 6A Current local prompt composition
+
+`prepare_prompt` validates a nonblank original without trimming it, resolves work read permission and optional own conversation, creates current context, and persists a personal `prepared_prompt`. The method is `worktether-local-2`. A compact `addedContext` projection retains goals/requirements/next action, warnings/corrections/omissions, snapshot IDs/revisions/time and source provenance/content, while omitting repeated internal source metadata. Full `context` stays in the draft separately.
+
+The prepared text consists of the exact original, selected format instruction, scope/evidence reminders, and labeled JSON reference data. There is no semantic rewrite, source verification, external model call, or automatic delivery. `preparedBytes` measures the full generated UTF-8 text; `budgetBytes` still limits the compact full context snapshot, not generated text or model tokens.
+
+Draft content is fixed. Only its actor may list/retrieve it, with current work access rechecked; saved Context IDs retain their existing work-permission behavior. Staleness compares current work/project revisions, not independently every external dependency. The browser invalidates previews after input/format/baseline/conversation changes and requires review before fresh authenticated retrieval/copy.
+
+`save_prepared_prompt` additionally requires edit access, title, expected work revision, and `reviewed:true`. It rejects an unsaved stale draft. It creates a `proposed` prompt source containing only the original request, with dependencies on included source/correction IDs and `preparation` metadata: Prompt ID, method/format, Context ID, work/project/source revisions, reviewer/time. The full envelope is not nested into source content. That source follows ordinary work access; the full draft remains actor-private.
+
+Saving updates saved-source/title linkage and increments work revision, making the draft historical. Repeated completed save with the same draft/title returns its source after authority/review checks; changed title returns `IDEMPOTENCY_CONFLICT`. Current save records a review assertion, not factual verification or a semantic acceptance/rejection registry. See [Prompt builder](PROMPT_BUILDER.md).
 
 ## 7 Corrections and exclusions
 
@@ -131,11 +147,11 @@ HTTP domain errors use `{error:{code,message,details?}}`. MCP domain failures re
 
 | HTTP / example code | Meaning / client action |
 | --- | --- |
-| 400 `INVALID_INPUT`, `INVALID_CONVERSATION`, `INVALID_FILE` | Fix the request; conversation attribution must match actor and work. |
+| 400 `INVALID_INPUT`, `INVALID_CONVERSATION`, `INVALID_FILE`, `REVIEW_REQUIRED` | Fix the request; conversation attribution must match actor/work and prepared save requires review assertion. |
 | 401 `UNAUTHENTICATED` | Obtain valid current identity; never fall back to an unauthenticated actor. |
 | 403 `FORBIDDEN`, `INVALID_HOST`, `INVALID_ORIGIN`, `ORIGIN_REQUIRED` | Authority/host/origin mismatch; do not weaken checks to make setup pass. |
 | 404 `NOT_FOUND` | Missing or concealed inaccessible object; do not infer whether private content exists. |
-| 409 `REVISION_CONFLICT`, `IDEMPOTENCY_CONFLICT`, `ALREADY_SUPERSEDED` | Retrieve and reconcile; reuse keys only for identical payloads. |
+| 409 `REVISION_CONFLICT`, `IDEMPOTENCY_CONFLICT`, `ALREADY_SUPERSEDED`, `STALE_CONTEXT` | Retrieve/reconcile or prepare a new draft; reuse keys/draft saves only for identical completed payloads. |
 | 413 `TOO_LARGE` | Reduce request/file size. |
 | 422 `BUDGET_TOO_SMALL` | Increase permitted budget or reduce mandatory baseline deliberately. |
 | 429 `RATE_LIMITED` | Back off local authentication attempts. |
@@ -149,10 +165,10 @@ Exact public names and schemas must be reviewed before implementation; these are
 | --- | --- |
 | Bind native conversation | Authenticated integration identity, approved project/work, native session reference, resume/fork mode; return stable WorkTether Conversation ID. Unique scoped mapping, no authority from email/native ID alone. |
 | Capture selected turn | Mapping, client event ID, original selected prompt, capture scope/consent version; idempotent source creation. Identical event/payload deduplicates, mismatch conflicts. |
-| Prepare prompt | Work/conversation, original prompt reference, expected baseline, context budget, preparation mode/policy; return original/proposed diff, preserved constraints, warnings, context/source revisions, and prepared ID. |
-| Accept/reject preparation | Prepared ID, expected revision, explicit decision; record attribution, reject stale selection, never overwrite original. |
+| Semantically assist preparation | Extend the implemented local composer with an explicitly authorized/evaluated model mode, changed-span diff, constraint checks, ambiguities, cost/latency and failure handling. No current external model mode. |
+| Record preparation decisions | Extend current browser review assertion/proposed-source save with an explicit accept/reject registry and adapter lifecycle; never overwrite original. |
 | Record adapter delivery | Prepared ID, native turn/event reference, status and failure reason; distinguish attempted, host-accepted, and unknown. No false model-processing guarantee. |
 
 New records should include mapping/preparation/consent revisions, lifecycle timestamps, policy version, and exact context provenance. Secret storage remains in the client/credential system, not in prompts. Persist mapping and captured source atomically where possible. Use a verified client event ID or an adapter-generated persisted retry ID; text hashes alone cannot distinguish legitimate repeated prompts.
 
-Preparation defaults to inspectable organization and context selection. Optional model assistance must be opt-in, evaluated, and able to return ambiguity without changing intent. [PROMPT_CONTEXT.md](PROMPT_CONTEXT.md) specifies lifecycle and host boundaries; [GUARDRAILS.md](GUARDRAILS.md) specifies release conditions.
+Current preparation is inspectable deterministic composition. Optional model assistance must be opt-in, evaluated, and able to return ambiguity without changing intent. [PROMPT_CONTEXT.md](PROMPT_CONTEXT.md) specifies lifecycle and host boundaries; [GUARDRAILS.md](GUARDRAILS.md) specifies release conditions.

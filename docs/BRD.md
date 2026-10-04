@@ -1,6 +1,6 @@
 # Business Requirements Document
 
-Version 0.3 · 4 October 2026 · Proposed business baseline, reconciled with the local prototype. Read the [README agenda](../README.md) first; [PRD](PRD.md) defines product scope and [FSD](FSD.md) defines behavior.
+Version 0.4 · 5 October 2026 · Proposed business baseline, reconciled with the local prototype. Read the [README agenda](../README.md) first; [PRD](PRD.md) defines product scope and [FSD](FSD.md) defines behavior.
 
 ## 1 Business problem
 
@@ -43,7 +43,7 @@ People authenticate; devices label connections. An operator controlling database
 
 ## 5 Scope and rollout
 
-The local foundation delivers deliberate context retrieval, selected source capture, privacy, revisions, and handoffs on one machine. A client pilot then verifies real Codex, Cursor, and Claude Code versions. The next product increment introduces inspectable prompt preparation and opt-in adapters. Shared hosting follows identity, storage, team lifecycle, and recovery work. GitHub follows the core collaboration workflow.
+The local foundation delivers deliberate context retrieval, selected source capture, privacy, revisions, and handoffs on one machine. Inspectable local prompt preparation now preserves the original request, adds permitted project context, and requires browser review before copy or source save. A client pilot then verifies real Codex, Cursor, and Claude versions and evaluates preparation quality. Optional semantic assistance and opt-in adapters follow separate evaluation and consent work. Shared hosting follows identity, storage, team lifecycle, and recovery work. GitHub follows the core collaboration workflow.
 
 The same service implementation can support many registered clients; each person's credential retains their own permissions. A shared server installation does not imply a shared credential, all-project access, or authority over another laptop.
 
@@ -67,7 +67,7 @@ Commercial pricing, market size, willingness to pay, and hosted capacity are unv
 | --- | --- |
 | Native client memories or Git-managed notes already meet the user's need. | Pilot against those simpler alternatives; do not claim unique invention. |
 | Additional capture/selection steps create more work than they save. | Start with selected records and one clear continuation action; measure burden. |
-| Prompt rewriting changes intent or removes uncertainty. | Preserve original text, show a diff, block ambiguous automatic transformation. |
+| Prompt rewriting changes intent or removes uncertainty. | Current local preparation keeps original text and exposes additions. Any future semantic rewrite needs a diff, evaluation, and explicit review. |
 | Summaries repeat a wrong claim. | Require provenance and review state; corrections invalidate recorded dependents. |
 | A host does not invoke tools or support interception. | Offer explicit retrieval/copy workflow; advertise adapter support only after certification. |
 | Sharing/transcripts disclose personal or repository secrets. | Private defaults, preview, least capture, explicit consent, and revocation. |
