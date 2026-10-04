@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "worktether": {
+      "type": "http",
+      "url": "http://127.0.0.1:4318/mcp",
+      "headers": {
+        "Authorization": "Bearer ${WORKTETHER_MCP_TOKEN}"
+      }
+    }
+  }
+}

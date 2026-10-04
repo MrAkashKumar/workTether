@@ -1,0 +1,68 @@
+{
+  "checkedAt": "2026-10-04T10:25:47.176893+00:00",
+  "scope": "WorkTether relocation, root README, documentation and generated local client configuration; application verification recorded separately",
+  "markdownFiles": 15,
+  "relativeLinksChecked": 106,
+  "missingRelativeLinks": [],
+  "unbalancedCodeFences": [],
+  "headingSpacingIssues": [],
+  "jsonTemplatesParsed": 2,
+  "tomlTemplatesParsed": 1,
+  "generatedClientConfigurations": [
+    {
+      "client": "codex",
+      "path": ".codex/config.toml",
+      "syntax": "passed",
+      "absoluteLaunchPaths": "passed",
+      "credentialActivation": "pending"
+    },
+    {
+      "client": "cursor",
+      "path": ".cursor/mcp.json",
+      "syntax": "passed",
+      "absoluteLaunchPaths": "passed",
+      "credentialActivation": "pending"
+    },
+    {
+      "client": "claude-code",
+      "path": ".mcp.json",
+      "syntax": "passed",
+      "absoluteLaunchPaths": "passed",
+      "credentialActivation": "pending"
+    },
+    {
+      "client": "claude-desktop",
+      "path": ".worktether/claude-desktop-config.json",
+      "syntax": "passed",
+      "absoluteLaunchPaths": "passed",
+      "credentialActivation": "pending"
+    }
+  ],
+  "environmentTemplateOriginDelimiter": "comma",
+  "mcpToolCatalogCount": 18,
+  "catalogMatchesImplementation": true,
+  "businessRequirements": 10,
+  "functionalRequirements": 29,
+  "acceptanceScenarios": 20,
+  "guardrails": 18,
+  "unknownRequirementReferences": [],
+  "canonicalArchitectureDiagrams": 6,
+  "projectMarkdownOutsideDocs": [
+    "README.md"
+  ],
+  "applicationVerification": {
+    "testsPassed": 21,
+    "testsFailed": 0,
+    "productionBuild": "passed",
+    "liveHttpSmoke": "passed; 18 tools and authenticated workspace",
+    "liveStdioSmoke": "passed; 18 tools and authenticated workspace",
+    "realThirdPartyClientCertification": "pending"
+  },
+  "limitations": [
+    "Mermaid blocks checked structurally, not rendered",
+    "Relative link file targets checked; individual heading anchors not certified",
+    "Generated configuration syntax and local launch paths checked; actual third-party clients and Windows not certified",
+    "Earlier benchmark retained without regeneration",
+    "Client configuration is prepared; personal credential activation is pending"
+  ]
+}

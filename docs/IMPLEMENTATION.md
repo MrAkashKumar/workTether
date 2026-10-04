@@ -1,0 +1,50 @@
+# Local release implementation
+
+Status: local prototype evidence, 4 October 2026. Start with the [README agenda](../README.md), [PRD](PRD.md), [FSD](FSD.md), and [validation matrix](VALIDATION.md). Current application behavior is distinct from the planned prompt/adapters described in [PROMPT_CONTEXT.md](PROMPT_CONTEXT.md).
+
+The PRD preceded implementation. The release is a React/Vite dashboard, an Express loopback API, an official TypeScript SDK MCP endpoint, and a durable native SQLite domain store. A local stdio bridge now forwards the same 18 tools to authenticated HTTP, and the setup CLI generates Codex/Cursor/Claude Code configs plus a Claude Desktop entry. It uses local accounts and selected user-entered records. GitHub, public deployment, embedded MCP Apps and remote execution are later work.
+
+## Core behavior
+
+| PRD area | Implemented behavior |
+| --- | --- |
+| Identity and continuation | Service-generated IDs for projects, work, conversations, sources, contexts, connections and handoffs. Work identity survives ownership changes and service restarts. |
+| Current requirements | Shared project baseline and immutable revisions. Baseline changes flag work and sources for review. Explicit acknowledgement does not clear outstanding source reviews. |
+| Private access | Membership plus work ownership, read/edit grants or explicit project visibility. Project ownership does not bypass private-work rules. |
+| Context | Complete compact-JSON UTF-8 budget, mandatory requirements/review information, explicit selection reasons/omissions and saved snapshots. Historical snapshots require current access and report staleness. |
+| Corrections | New replacement source, superseded history, expected revision check, transitive recorded dependency flags, review note/reviewer/time. Reversible exclusions remove records from future active context. |
+| Sharing | Selected immutable handoff snapshots and protected files, full selected-content preview with revision checks, scoped retry-key deduplication, retrieval and acknowledgement state, stale warnings and future-access revocation. |
+| Workflow | Work creation, revision-checked updates, explicit read/edit sharing and ownership transfer with retained-access choice. |
+| Dashboard | Overview, work search/pages, detail/context/sources/history/access, received and sent handoffs, bounded dependency graph, evidence-state chart, activity and client registrations. |
+| MCP | Authenticated Streamable HTTP using official SDK packages. One domain service for API and MCP permissions; no client-supplied actor IDs. |
+
+## Verification evidence
+
+Automated storage and HTTP/MCP tests cover authentication, credential/device revocation, private metadata/content filtering, protected file access, immutable revisions, concurrent conflicts, transitive corrections, review evidence, handoff deduplication/staleness/revocation, bounded context, restart recovery, pagination, cyclic/bounded graphs and identity continuation. The integration test connects the actual SDK client over HTTP; it is not a mocked tool call.
+
+The browser verification uses the running production build and sample data. Verified in the browser at 1440px and 375px widths: sign-in, permitted work, conversation creation, selected prompt capture, exclusion, work review evidence in immutable history, bounded context generation and reopening a saved context. The handoff preview displayed the selected recipient, full text, source content/state/revision and file metadata before sending; HTTP/MCP tests rejected stale work/source previews. Connection setup at 375px had no horizontal document overflow. Screenshots: [dashboard](assets/dashboard-local.jpg) and [mobile connection setup](assets/connections-mobile.jpg). Sample users/records are examples rather than other people's connected machines.
+
+Latest verification: 21 tests passed, production build passed, and the live HTTP and stdio MCP smoke checks each discovered 18 tools and retrieved an authenticated workspace. The HTTP integration check verified legacy SDK negotiation and the pinned 2026-07-28 protocol mode.
+
+The [benchmark report](benchmark-results.json) records the machine, workload, sample count and latency. On the tested Apple M3 Pro / 18 GiB / Node 22.23.1, p95 latency with 10 concurrent clients was 362 ms for work listing, 393 ms for saved context assembly, and 117 ms for inbox metadata. Each operation had 30 measured requests after one warmup. It measures authenticated local API operations that share the MCP domain service. It excludes model inference, WAN latency, attachment traffic and complete dashboard bootstrap. It is not an unlimited-capacity or hosted-performance claim.
+
+## Limits and next engineering work
+
+- The JSON-record SQLite adapter performs scans. Pagination bounds returned records, not internal work. Replace it with indexed relational tables before large hosted deployments.
+- Source relevance is limited to the selected Work ID, source state and recency. No semantic search, model reranker or learned accuracy/bias score is implemented. A source marked verified remains a user's recorded claim until its evidence is assessed.
+- Conversations are explicit records and selected excerpts. Universal full-chat capture and automatic summary generation are not implemented. Summary records preserve source identity and dependencies when the author records them.
+- No prompt rewriting, preparation diff/approval records, native host session mapping, or automatic capture adapter is implemented. `clientReference` is an optional caller-supplied string. Conversation metadata is readable under work access; capture attribution requires the actor's own conversation. [INTEGRATIONS.md](INTEGRATIONS.md) documents official client routes without claiming real-client certification.
+- Context snapshots retain exact packages. They can become stale; always retrieve current context before continuing actual work. Revocation blocks service retrieval, not previously copied content.
+- The browser shows bounded source and handoff pages. Immutable history is a bounded latest workspace view; further revision offsets are available through API/MCP. Attachment listings are bounded metadata views. These limits are visible rather than presented as complete history.
+- Activity shows the latest permitted events. The full local SQLite archive remains durable. Account-wide deletion, user export UI and configurable retention are not part of this local release.
+- Local membership is added by registered email; invitations, removing members, password recovery, stronger session administration and production OAuth belong to hosting hardening.
+- Device platform/client names are user-entered. Last observed activity records authenticated requests. This does not prove a client UI is connected, a machine is currently online, or an assistant is executing.
+- Multiple-client behavior is tested with separate identities and HTTP clients on this Mac. Physical Windows machines and every third-party AI host have not been tested.
+- There is one local workspace, with multiple projects/users. Organization-level tenancy, subscriptions and hosted operations are future work.
+- Neither a huge context window nor this architecture guarantees correct or unbiased model behavior. The product makes requirements, selected context, revisions and evidence inspectable so users can correct direction.
+
+## Architecture boundaries
+
+`server/store.ts` owns authorization, durable records, atomic changes and context selection. `server/index.ts` owns local HTTP authentication, trusted hosts/origins, request limits and protected downloads. `server/mcp.ts` exposes typed tools and maps domain errors into structured MCP results. `src/` renders permitted responses and deliberate actions; it does not make authorization decisions for the server.
+
+The relational adapter migration, OAuth deployment and real-client certification are concrete next steps in [HOSTING.md](HOSTING.md). The first hosted pilot should retain stable IDs and rerun the acceptance checks before adding autonomous execution.

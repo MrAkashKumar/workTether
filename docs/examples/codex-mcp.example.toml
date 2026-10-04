@@ -1,0 +1,5 @@
+# Documentation template. Merge into the applicable local Codex configuration.
+# WORKTETHER_MCP_TOKEN must be available to the client/executor process.
+[mcp_servers.worktether]
+url = "http://127.0.0.1:4318/mcp"
+bearer_token_env_var = "WORKTETHER_MCP_TOKEN"

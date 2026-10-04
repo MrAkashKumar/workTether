@@ -1,0 +1,47 @@
+{
+  "measuredAt": "2026-10-04T09:44:27.474Z",
+  "machine": {
+    "platform": "darwin",
+    "architecture": "arm64",
+    "cpu": "Apple M3 Pro",
+    "logicalCpus": 11,
+    "ramGiB": 18,
+    "node": "v22.23.1"
+  },
+  "workload": {
+    "users": 20,
+    "devices": 60,
+    "projects": 5,
+    "works": 1000,
+    "sources": 10000,
+    "handoffs": 100,
+    "concurrentClients": 10
+  },
+  "transport": "Authenticated local HTTP API sharing the MCP domain store; production build server; synthetic text fixture",
+  "metrics": {
+    "list_work": {
+      "samples": 30,
+      "p50Ms": 357,
+      "p95Ms": 362,
+      "maxMs": 364
+    },
+    "get_context": {
+      "samples": 30,
+      "p50Ms": 385,
+      "p95Ms": 393,
+      "maxMs": 393
+    },
+    "list_inbox": {
+      "samples": 30,
+      "p50Ms": 117,
+      "p95Ms": 117,
+      "maxMs": 118
+    }
+  },
+  "caveats": [
+    "Single-process SQLite and one local machine.",
+    "Synthetic data and 30 measured requests per operation; not a hosted capacity claim.",
+    "Devices are records; operating systems were not physically tested.",
+    "No model inference, WAN latency, attachment load or full dashboard bootstrap included."
+  ]
+}
