@@ -1,6 +1,6 @@
 # Local release implementation
 
-Status: local prototype evidence, version 0.4 · 5 October 2026. Start with the [README agenda](../README.md), [PRD](PRD.md), [FSD](FSD.md), and [validation matrix](VALIDATION.md). Current local prompt preparation is documented in [PROMPT_BUILDER.md](PROMPT_BUILDER.md); native adapters and semantic assistance remain planned in [PROMPT_CONTEXT.md](PROMPT_CONTEXT.md).
+Status: local prototype evidence, version 0.5 · 5 October 2026. Start with the [README agenda](../README.md), [PRD](PRD.md), [FSD](FSD.md), and [validation matrix](VALIDATION.md). Current local prompt preparation is documented in [PROMPT_BUILDER.md](PROMPT_BUILDER.md); native adapters and semantic assistance remain planned in [PROMPT_CONTEXT.md](PROMPT_CONTEXT.md).
 
 The PRD preceded implementation. The release is a React/Vite dashboard, an Express loopback API, an official TypeScript SDK MCP endpoint, and a durable native SQLite domain store. A local stdio bridge now forwards the same 20 tools to authenticated HTTP, and the setup CLI generates Codex/Cursor/Claude Code configs plus a Claude Desktop entry. It uses local accounts and selected user-entered records. GitHub, public deployment, embedded MCP Apps and remote execution are later work.
 

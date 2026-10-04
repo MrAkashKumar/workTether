@@ -1,9 +1,9 @@
 {
-  "checkedAt": "2026-10-04T17:02:02.054966+00:00",
-  "documentationVersion": "0.4",
-  "scope": "WorkTether root README, documentation, examples and generated local client configuration; application and browser verification recorded separately",
-  "markdownFiles": 16,
-  "relativeLinksChecked": 129,
+  "checkedAt": "2026-10-04T17:20:36.321166+00:00",
+  "documentationVersion": "0.5",
+  "scope": "WorkTether README screenshot embeds, conversation/laptop/design guides, documentation, examples and local generated configs; runtime evidence recorded separately",
+  "markdownFiles": 19,
+  "relativeLinksChecked": 170,
   "missingRelativeLinks": [],
   "unbalancedCodeFences": [],
   "headingSpacingIssues": [],
@@ -60,7 +60,15 @@
     "productionBuild": "passed",
     "liveHttpSmoke": "passed; 20 tools and authenticated workspace",
     "liveStdioSmoke": "passed; 20 tools and authenticated workspace",
-    "realThirdPartyClientCertification": "pending"
+    "realThirdPartyClientCertification": "pending",
+    "setupHelp": "passed; exits without credential activation",
+    "newChecks": [
+      "laptop name normalization and unsafe label rejection",
+      "invalid setup label creates no client registration",
+      "separate credentials retain laptop names",
+      "conversation labels survive restart with authenticated ownership",
+      "MCP creation accepts client/laptop labels"
+    ]
   },
   "browserVerification": {
     "desktopViewportWidth": 1440,
@@ -68,19 +76,20 @@
     "mobileViewportWidth": 375,
     "mobilePageWidth": 375,
     "flows": [
-      "overview",
-      "local prompt prepare/retrieve",
-      "review gate",
-      "edited input invalidates preview",
-      "mobile More navigation",
-      "client-specific setup command",
-      "setup form without credential creation"
+      "conversation create/select/reload",
+      "exact Work/Conversation IDs in copied resume instruction",
+      "selected attribution visible in Sources",
+      "client/laptop-specific setup command",
+      "unsafe laptop label disables copy",
+      "desktop/mobile tracking and setup layouts"
     ],
     "capturedWarningOrErrorEntries": 0,
     "viewportOverrideReset": true,
     "screenshots": [
       "docs/assets/dashboard-refined.jpg",
-      "docs/assets/prompt-builder-local.jpg",
+      "docs/assets/conversation-tracking.jpg",
+      "docs/assets/conversations-mobile.jpg",
+      "docs/assets/laptop-setup.jpg",
       "docs/assets/connections-refined-mobile.jpg"
     ]
   },
@@ -92,6 +101,8 @@
     "Client configuration is prepared; personal credential activation is pending",
     "Browser spot checks are not a formal accessibility audit",
     "Local preparation preserves original requests and adds context; semantic model quality, bias and token savings have not been evaluated",
-    "Draft freshness compares current work/project revisions rather than every external dependency"
-  ]
+    "Draft freshness compares current work/project revisions rather than every external dependency",
+    "Conversation and setup laptop/client labels are supplied metadata; automatic native mapping and hardware binding are not implemented"
+  ],
+  "conversationOptionalLabelsMatchCatalog": true
 }

@@ -1,6 +1,6 @@
 # Architecture and diagrams
 
-Version 0.4 · 5 October 2026. Diagrams describe the current local service or explicitly labeled future components. Requirements are in [PRD](PRD.md); contracts are in [FSD](FSD.md). Mermaid source stays inside these documents for review and versioning.
+Version 0.5 · 5 October 2026. Diagrams describe the current local service or explicitly labeled future components. Requirements are in [PRD](PRD.md); contracts are in [FSD](FSD.md). Mermaid source stays inside these documents for review and versioning.
 
 ## D1 — Current local architecture
 
@@ -170,6 +170,8 @@ The [refined dashboard](assets/dashboard-refined.jpg) and [local prompt builder]
 ![Local original-preserving prompt builder with reviewable added context](assets/prompt-builder-local.jpg)
 
 The evidence chart counts readable current project records in explicit evidence states. It measures recorded evidence state, not model accuracy. The graph is a bounded recorded neighborhood: current limits are 80 nodes and 160 edges. A readable relationship list complements the visualization. The current Prompt builder exposes preserved original input, exact added context, warnings/provenance, and complete generated text. It has no quality score. Semantic changed-span diffs and native capture/mapping status remain future work. The responsive redesign uses clearer navigation, vibrant accents, short interaction transitions and reduced-motion support; formal accessibility certification is pending.
+
+The current [conversation screen](assets/conversation-tracking.jpg) and [laptop setup](assets/laptop-setup.jpg) add explicit attribution and named local registrations. [CONVERSATION_TRACKING.md](CONVERSATION_TRACKING.md) diagrams how several chats continue one Work ID; [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) describes reusable presentation components. These additions do not install automatic native adapters or establish shared hosting.
 
 ## Architecture decisions
 

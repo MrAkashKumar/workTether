@@ -1,6 +1,6 @@
 # Prompt, context, and conversation lifecycle
 
-Version 0.4 · 5 October 2026. Current behavior includes explicit selected capture, bounded context assembly, and personal local prompt drafts with review/copy and explicit proposed-source save. Native adapters, semantic rewriting, consent registries, and automatic preparation are **planned L2**. See [FSD](FSD.md) for available tools and [integrations](INTEGRATIONS.md) for host-specific boundaries.
+Version 0.5 · 5 October 2026. Current behavior includes explicit selected capture, bounded context assembly, and personal local prompt drafts with review/copy and explicit proposed-source save. Native adapters, semantic rewriting, consent registries, and automatic preparation are **planned L2**. See [FSD](FSD.md) for available tools and [integrations](INTEGRATIONS.md) for host-specific boundaries.
 
 ## 1 Answer to the central question
 
@@ -29,7 +29,7 @@ New chat, same objective: keep Work ID and create a new Conversation ID. Same na
 ## 3 Current explicit workflow
 
 1. Select a permitted project/work using `workspace_overview` and `list_work`.
-2. Call `create_conversation` with work/title and optional `clientReference`. Keep the returned ID in the visible continuation header.
+2. For a new chat, call `create_conversation` with work/title and optional supplied `client`, `machineName` and `clientReference`. For the same-chat resume, verify and reuse its existing record. Keep the full returned ID in the visible continuation header.
 3. Call `record_source` for selected authorized excerpts. Link `conversationId`; record summaries/decisions/evidence separately and use `dependsOn` where relationships are known.
 4. Call `get_work_context`. Inspect revisions, mandatory requirements, review warnings, included sources/reasons, and omissions.
 5. Supply the package through the client tool workflow, or explicitly call `prepare_prompt` with the original request and optional own Conversation ID. Inspect the added context and warnings; manual review/copy remains deliberate. The server does not control the host's final full request.

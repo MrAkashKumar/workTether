@@ -1,6 +1,6 @@
 # Validation and requirement traceability
 
-Version 0.4 · 5 October 2026. Evidence below is the current application verification from this local build. This release adds simpler responsive navigation, readable context, and local prompt preparation. Protocol/setup tests do not certify actual third-party host UIs, hooks, or semantic prompt quality.
+Version 0.5 · 5 October 2026. Evidence below is the current application verification from this local build. This release adds dedicated conversation tracking, laptop setup labels, reusable UI components and screenshot guides. Protocol/setup tests do not certify actual third-party host UIs, hooks, or semantic prompt quality.
 
 ## Evidence summary
 
@@ -8,12 +8,12 @@ Version 0.4 · 5 October 2026. Evidence below is the current application verific
 | --- | --- |
 | [Store tests](../tests/store.test.ts) | 19 tests: identity, permissions, revisions, correction/review, handoffs, budgets, pagination/graphs, explicit conversations, snapshots, exclusion, personal prompt preservation/provenance/freshness and reviewed original-only source save. |
 | [HTTP/MCP test](../tests/server.test.ts) | 1 integration test uses actual HTTP and SDK client; identity/origin/revocation/handoff behavior, legacy negotiation and pinned newer protocol mode. |
-| [Integration tests](../tests/integrations.test.ts) | 4 tests: safe config generation, separate personal credentials and interrupted setup recovery, real stdio process across protocol modes, personal prompt preparation/retrieval/privacy, revocation, and secret-free failure. |
+| [Integration tests](../tests/integrations.test.ts) | 4 tests: safe config generation, separate personal credentials/laptop names and interrupted setup recovery, rejected unsafe labels before provisioning, real stdio process across protocol modes, conversation labels/attribution, personal prompt preparation/retrieval/privacy, revocation, and secret-free failure. |
 | Complete suite | 24 tests passed; zero failed. Original whitespace/Unicode, compact context, warnings, rollback on mandatory-budget failure, stale/access checks, save replay, and restart persistence are covered. |
 | Production build | TypeScript and Vite build passed during application verification. |
 | [Live MCP smoke](../scripts/check-mcp.ts) | HTTP and stdio each discovered 20 tools and an authenticated workspace; temporary credentials revoked. |
-| Browser review | 1440px desktop and 375px mobile: overview, prompt preparation, review gate, invalidation after input edits, mobile More menu, client selector/command and setup form. Checked page widths matched viewport widths. No captured warning/error console entries. Not a full accessibility audit. |
-| Visual evidence | [Overview](assets/dashboard-refined.jpg), [Prompt builder](assets/prompt-builder-local.jpg), [mobile Connections](assets/connections-refined-mobile.jpg). Images contain sample project data. |
+| Browser review | 1440px desktop and 375px mobile: new conversation form/record, preserved labels after reload, own selection visible in Sources, exact resume instruction copying, client/laptop setup command, invalid label disabling copy, and layout widths matching viewports. No captured warning/error console entries. Earlier prompt review/invalidation and navigation checks remain recorded. Not a full accessibility audit. |
+| Visual evidence | [Overview](assets/dashboard-refined.jpg), [Conversations](assets/conversation-tracking.jpg), [mobile Conversations](assets/conversations-mobile.jpg), [laptop setup](assets/laptop-setup.jpg), [mobile Connections](assets/connections-refined-mobile.jpg). [Prompt builder](assets/prompt-builder-local.jpg) is the earlier 0.4 view. Images contain sample project data, without credentials. |
 | [Local benchmark](benchmark-results.json) | 4 October 2026; synthetic local authenticated HTTP, 10 concurrent clients, 30 measured samples per operation. |
 
 Sample accounts and client/device labels are data fixtures, not actual other connected physical machines. No real Codex/Cursor/Claude host or physical Windows certification is recorded. Graph/byte/evidence-state results are not model accuracy or bias evaluations.
@@ -24,7 +24,7 @@ Sample accounts and client/device labels are data fixtures, not actual other con
 | --- | --- | --- |
 | FR01/02/07/18; AC02/04; GR01–04/13 | Session/credential/device revocation tests; private metadata/content/file/context/graph filtering. | Hosted tenancy, member removal, export and broader security review. |
 | FR03/04/15/19; AC01/05/09; GR08 | Stable ownership transfer, immutable revisions, stale writes, restart, shared domain dispatch. | Physical multi-machine continuation and hosted adapter recovery. |
-| FR05/21; AC14; GR05 | Explicit conversation IDs, same-work/actor capture validation, dependency-linked selected summaries. | Native mapping uniqueness and event deduplication; automatic capture/summarization. |
+| FR05/21; AC14; GR05 | Explicit conversation IDs and validated client/laptop metadata, restart persistence, same-work/actor capture validation, dependency-linked selected summaries, browser new/resume workflow. | Native mapping uniqueness and event deduplication; automatic capture/summarization. |
 | FR06; AC07; GR07 | Complete UTF-8 package tests, mandatory-budget failure, immutable context/stale/access tests. | Host request/token/truncation behavior; semantic relevance evaluation. |
 | FR08/09; AC03/08; GR11/12 | Selected immutable payloads, retry conflict/deduplication, staleness/revocation, protected selected files; UI preview. | Actual host preview/delivery workflows and WAN reliability. |
 | FR10/22; AC06/15; GR09/10 | Transitive/private correction review, concurrent corrections, preserved review evidence, exclusion/restoration. | Unrecorded dependency discovery is not promised; expanded freshness scope needs design. |

@@ -4,7 +4,7 @@ WorkTether preserves current project intent, work identity, decisions, evidence,
 
 | Field | Value |
 | --- | --- |
-| Version / date | 0.4 / 5 October 2026 |
+| Version / date | 0.5 / 5 October 2026 |
 | Status | Local prompt preparation implemented; native adapters, evaluation, hosting, and client certification remain planned |
 | Deployment | Local first, then one shared hosted service |
 | Client targets | Codex, Cursor, Claude Code; Claude Desktop/web through separately verified routes |
@@ -145,7 +145,7 @@ FR01–FR20 retain their original identifiers. The table records actual status i
 | FR18 | Revoke sessions/credentials/devices/grants/handoffs; deny future controlled retrieval including contexts/files. | Implemented L0; account-wide session administration L3. |
 | FR19 | Persist IDs/state/revisions/permissions/handoffs across restart. | Implemented L0; backup/recovery operations L3. |
 | FR20 | Responsive browser overview/work/context/prompt-builder/sources/history/handoffs/dependencies/members/connections; clear states, reviewable actions, reduced-motion behavior. | Partial: local UI implemented/reviewed; formal accessibility audit pending. |
-| FR21 | Durable conversation capture attribution plus native session/turn mapping unique by authenticated integration scope, with idempotent lifecycle. | Partial: explicit conversations implemented; adapters/mapping L2. |
+| FR21 | Durable conversation capture attribution plus native session/turn mapping unique by authenticated integration scope, with idempotent lifecycle. | Partial: explicit conversations, client/laptop labels and browser tracking implemented; adapters/mapping L2. |
 | FR22 | Exclude/restore current sources with reason/revision; preserved history and dependency review flags. | Implemented L0. |
 | FR23 | Preserve original prompt; prepared variant has inspectable additions, method version, context/source provenance and review before use. Extend to semantic diff and accept/reject registry when needed. | Partial L2: personal local drafts, review-gated copy, and reviewed proposed-source save implemented; semantic diff/evaluation and rejection registry planned. |
 | FR24 | Client-specific setup, capability matrix, version/OS/auth evidence; sanitized configs; Claude surfaces separated. | Setup CLI and stdio bridge implemented; real client certification L1. |
@@ -184,7 +184,7 @@ The opening dashboard prioritizes permitted work, requirement changes/reviews, n
 | Overview | Selected project, accessible work, pending handoffs, review flags, evidence-state chart. |
 | Work | Objective, owner/state/revision, current requirements, sources, next action, explicit continuation. |
 | Context | Package ID/revisions/budget, warnings, source reasons, omissions, saved snapshot/stale state. |
-| Conversations | WorkTether ID, owner, title, optional client reference; future native mapping/capture status. |
+| Conversations | WorkTether ID, owner, title, supplied client/laptop labels, optional client reference, own attribution selection and start/resume instructions; future native mapping/capture status. |
 | Handoffs | Sender/recipient, exact selected snapshot, delivery/review/stale state, acknowledge action. |
 | Dependencies | Bounded recorded neighborhood, labeled relations, permitted omission information, record list. |
 | Connections | Device/client labels, last observed request, credential creation/revocation, setup guide. |
@@ -193,7 +193,7 @@ The opening dashboard prioritizes permitted work, requirement changes/reviews, n
 
 Graphs answer questions such as which recorded conclusions need review after a correction. They are not complete organization maps. Charts must label what is counted; verified evidence is a recorded status, not a factual accuracy score. Prompt/token charts require measured usage or clearly labeled estimates.
 
-[Dashboard concept](assets/dashboard-concept.png) and [connection concept](assets/connection-concept.png) are illustrative designs. [Current dashboard](assets/dashboard-local.jpg) and [mobile connection setup](assets/connections-mobile.jpg) show an earlier local UI with sample records; they do not certify the version 0.4 layout.
+[Dashboard concept](assets/dashboard-concept.png) and [connection concept](assets/connection-concept.png) are illustrative designs. [Earlier dashboard](assets/dashboard-local.jpg) and [mobile connection setup](assets/connections-mobile.jpg) show an earlier local UI with sample records; they do not certify the version 0.5 layout. Current screenshots are in the root README and tracking/setup guides.
 
 ## 11 Privacy, guardrails, and retention
 

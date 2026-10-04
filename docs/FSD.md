@@ -12,7 +12,7 @@ Version 0.5 · 5 October 2026. This document specifies the current prototype and
 | [server/stdio.ts](../server/stdio.ts) | Official SDK stdio bridge; forwards to the authenticated HTTP service without owning a database. |
 | [integrations/config.ts](../integrations/config.ts), [setup CLI](../scripts/setup-mcp.ts) | Local config generation and separate personal credential provisioning; no global config overwrite. |
 | [server/prompts.ts](../server/prompts.ts) | Versioned deterministic context projection/composition without external AI calls. |
-| [src/App.tsx](../src/App.tsx), [workflow](../src/workflow.tsx), [PromptBuilder](../src/PromptBuilder.tsx) | Permitted browser views, responsive navigation, readable context and deliberate prompt review/copy/save. |
+| [src/App.tsx](../src/App.tsx), [workflow](../src/workflow.tsx), [PromptBuilder](../src/PromptBuilder.tsx), [Conversations](../src/Conversations.tsx), [shared UI](../src/ui.tsx) | Permitted browser views, responsive navigation, readable context, explicit conversation attribution and deliberate prompt review/copy/save. |
 
 The domain derives the actor from authenticated request state. Every exposed operation checks project/work authority. Changing surface from browser to MCP does not change ownership or grant rules. SQLite `BEGIN IMMEDIATE` transactions protect multi-record mutations. There is one local workspace; multi-organization tenancy is unimplemented.
 
