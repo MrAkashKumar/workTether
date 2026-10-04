@@ -8,7 +8,7 @@ import { spawn } from 'node:child_process';
 import { Client } from '@modelcontextprotocol/client';
 import { StdioClientTransport } from '@modelcontextprotocol/client/stdio';
 import { createApp } from '../server/index';
-import { clients, configPlans, writeConfigs, readConnection, saveConnection, serviceUrl } from '../integrations/config';
+import { clients, configPlans, writeConfigs, readConnection, saveConnection, serviceUrl, machineLabel } from '../integrations/config';
 import { setupConnections } from '../scripts/setup-mcp';
 
 const project = resolve(fileURLToPath(new URL('..', import.meta.url)));
@@ -44,6 +44,9 @@ test('client configs preserve other entries, use absolute paths, reject collisio
     assert.throws(() => serviceUrl('https://token@example.com'), /without credentials/);
     assert.throws(() => serviceUrl('https://example.com?token=secret'));
     assert.equal(serviceUrl('http://localhost:9000/'), 'http://localhost:9000');
+    assert.equal(machineLabel(' Akash MacBook '), 'Akash MacBook');
+    assert.equal(machineLabel(), 'this machine');
+    for (const label of ['', 'x'.repeat(65), 'Laptop"; echo secret', 'Laptop$(command)', 'Laptop\ncommand']) assert.throws(() => machineLabel(label), /Laptop name/);
     if (process.platform !== 'win32') {
       mkdirSync(join(root, 'unsafe'));
       rmSync(join(root, '.mcp.json'));
@@ -61,11 +64,15 @@ test('setup creates separate personal revocable client credentials without touch
   const user = runtime.store.login('akash@worktether.local', 'worktether-local-2026').user;
   const starter = runtime.store.execute(user.id, 'create_credential', { name: 'Setup test starter' });
   try {
-    const result = await setupConnections({ root, selected: clients, url, token: starter.token });
+    const beforeInvalid = runtime.store.execute(user.id, 'bootstrap', {}).devices.length;
+    await assert.rejects(() => setupConnections({root: join(root, 'invalid-laptop'), selected: clients, url, token: starter.token, machineName: 'bad"name'}), /Laptop name/);
+    assert.equal(runtime.store.execute(user.id, 'bootstrap', {}).devices.length, beforeInvalid);
+    const result = await setupConnections({ root, selected: clients, url, token: starter.token, machineName: 'Akash MacBook' });
     assert.equal(result.activated, true);
     const connections = result.plans.map(plan => readConnection(plan.credentialPath));
     assert.equal(new Set(connections.map(c => c.token)).size, 4);
-    for (const c of connections) { assert.equal(runtime.store.authenticate(c.token)?.id, user.id); assert.equal(c.url, url); }
+    for (const c of connections) { assert.equal(runtime.store.authenticate(c.token)?.id, user.id); assert.equal(c.url, url); assert.equal(c.machineName, 'Akash MacBook'); }
+    assert.ok(runtime.store.execute(user.id, 'bootstrap', {}).devices.filter((d: any) => connections.some(c => c.deviceId === d.id)).every((d: any) => d.name.endsWith('on Akash MacBook')));
     await assert.rejects(() => setupConnections({ root, selected: clients, url, token: starter.token }), /already/);
     const selected = connections[1];
     runtime.store.execute(user.id, 'revoke_device', { deviceId: selected.deviceId });
@@ -111,7 +118,8 @@ test('real stdio process forwards all tools, preserves private identity, convers
     for (const c of [a.client, m.client, modern.client]) assert.equal((await c.listTools()).tools.length, 20);
     const call = (c: Client, name: string, args: any) => c.callTool({ name, arguments: args }) as Promise<any>;
     assert.equal((await call(m.client, 'get_work_context', { workId: work.id })).structuredContent.error.code, 'NOT_FOUND');
-    const conversation = (await call(a.client, 'create_conversation', { workId: work.id, title: 'Client continuation' })).structuredContent;
+    const conversation = (await call(a.client, 'create_conversation', { workId: work.id, title: 'Client continuation', client: 'codex', machineName: 'Test MacBook' })).structuredContent;
+    assert.equal(conversation.client, 'codex'); assert.equal(conversation.machineName, 'Test MacBook');
     const prompt = (await call(a.client, 'record_source', { workId: work.id, conversationId: conversation.id, kind: 'prompt', title: 'Selected request', content: 'Preserve requirements.' })).structuredContent;
     const context = (await call(modern.client, 'get_work_context', { workId: work.id })).structuredContent;
     assert.equal(context.sources.find((s: any) => s.id === prompt.id).conversationId, conversation.id);

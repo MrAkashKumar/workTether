@@ -1,6 +1,6 @@
 # Sources and claim boundaries
 
-Official references checked 4 October 2026. Client behavior can change; recheck the relevant version before implementation or certification. URLs may redirect from earlier vendor documentation domains. These sources explain host/protocol capability, not proof that WorkTether integrations have been tested.
+Official references initially checked 4 October 2026. Codex, Cursor and Claude Code MCP/hooks pages were rechecked 5 October 2026 for laptop scopes and native identifiers; remaining references retain their earlier check date. Client behavior can change; recheck the relevant version before implementation or certification. URLs may redirect from earlier vendor documentation domains. These sources explain host/protocol capability, not proof that WorkTether integrations have been tested.
 
 | Reference | Used for |
 | --- | --- |

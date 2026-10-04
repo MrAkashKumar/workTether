@@ -276,7 +276,7 @@ export class Store {
       }
       case 'create_conversation': {
         const w = this.work(userId, p.workId, 'edit');
-        const conversation = this.put('conversation', { id: id('conv'), workId: w.id, ownerId: userId, title: string(p.title, 'title', 200), clientReference: p.clientReference === undefined ? null : string(p.clientReference, 'clientReference', 1000, true), createdAt: now() });
+        const conversation = this.put('conversation', { id: id('conv'), workId: w.id, ownerId: userId, title: string(p.title, 'title', 200), client: p.client === undefined ? null : string(p.client, 'client', 100), machineName: p.machineName === undefined ? null : string(p.machineName, 'machineName', 64), clientReference: p.clientReference === undefined ? null : string(p.clientReference, 'clientReference', 1000, true), createdAt: now() });
         this.audit(userId, action, { workId: w.id, projectId: w.projectId, conversationId: conversation.id }); return conversation;
       }
       case 'list_conversations': { this.work(userId, p.workId); return this.page(this.all('conversation').filter(c => c.workId === p.workId).reverse(), p.offset, p.limit, 100, 200); }

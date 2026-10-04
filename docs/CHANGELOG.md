@@ -1,5 +1,14 @@
 # Documentation change history
 
+## 0.5 — 5 October 2026
+
+- Added a dedicated Conversations view with supplied client/laptop labels, author attribution, full-ID copying, pagination and distinct start/resume instructions. Selected own conversation attribution remains visible across work tabs.
+- Extended `create_conversation` with optional validated `client`/`machineName` fields; stable Work IDs and existing records remain compatible. Labels are not automatic native mapping or verified hardware identity.
+- Added `--machine-name` and `--help` to laptop setup; each selected client retains a separate credential and local launch paths. Added label validation and attribution/persistence assertions to the existing tests.
+- Added reusable banners, ID fields and client badges with shared design tokens, responsive layouts, richer introductory gradients and reduced-motion support.
+- Added conversation tracking, laptop setup and design-system guides in `docs/`; embedded actual sample screenshots in the root README and rechecked official client documentation.
+- Full suite remains 24 passing tests; production build passes. Actual client applications, physical Windows, automatic capture and hosted collaboration remain separate pending gates.
+
 ## 0.4 — 5 October 2026
 
 - Simplified responsive navigation to Overview, Work, Handoffs, and Connections, with Dependencies, Activity, and Project members kept available. Added readable context, full-ID copying, clearer privacy labels, three-step client setup, vibrant accents, and restrained motion with reduced-motion support.

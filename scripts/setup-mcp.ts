@@ -1,15 +1,16 @@
 import { existsSync, unlinkSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { clients, configPlans, writeConfigs, saveConnection, serviceUrl, type ClientName } from '../integrations/config';
+import { clients, configPlans, writeConfigs, saveConnection, serviceUrl, machineLabel, type ClientName } from '../integrations/config';
 
-type SetupOptions = { root: string; selected: readonly ClientName[]; url: string; token?: string; configureOnly?: boolean };
+type SetupOptions = { root: string; selected: readonly ClientName[]; url: string; token?: string; configureOnly?: boolean; machineName?: string };
 class SetupCleanupError extends Error {
   constructor() { super('Setup failed and some cleanup requests failed. Revoke newly created connections in the dashboard and review local credential files before retrying.'); }
 }
 
 /** Explicit setup provisions separate revocable credentials, never writing a token to client configuration. */
 export async function setupConnections(options: SetupOptions) {
+  const machineName = machineLabel(options.machineName);
   const base = serviceUrl(options.url), plans = configPlans(options.root, options.selected);
   if (options.configureOnly) { writeConfigs(plans); return { plans, activated: false }; }
   if (!options.token || !/^wt_[A-Za-z0-9_-]{43}$/.test(options.token)) throw new Error('Provide a WorkTether credential from Connections.');
@@ -27,11 +28,11 @@ export async function setupConnections(options: SetupOptions) {
   const created: { deviceId: string; credentialId?: string; path?: string }[] = [];
   try {
     for (const plan of plans) {
-      const device = await api('register_device', { name: `${plan.client} on this machine`, client: plan.client, platform: process.platform });
+      const device = await api('register_device', { name: `${plan.client} on ${machineName}`, client: plan.client, platform: process.platform });
       const record: typeof created[number] = { deviceId: device.id }; created.push(record);
-      const credential = await api('create_credential', { name: `${plan.client} local MCP`, deviceId: device.id });
+      const credential = await api('create_credential', { name: `${plan.client} on ${machineName}`, deviceId: device.id });
       record.credentialId = credential.id;
-      saveConnection(plan.credentialPath, { url: base, token: credential.token, credentialId: credential.id, deviceId: device.id, userId: overview.user.id, client: plan.client });
+      saveConnection(plan.credentialPath, { url: base, token: credential.token, credentialId: credential.id, deviceId: device.id, userId: overview.user.id, client: plan.client, machineName });
       record.path = plan.credentialPath;
     }
     writeConfigs(plans);
@@ -73,18 +74,22 @@ async function hiddenToken() {
 
 async function main() {
   const args = process.argv.slice(2);
-  let client = 'all', url = process.env.WORKTETHER_URL || 'http://127.0.0.1:4318', configureOnly = false;
+  const usage = 'Usage: npm run setup:mcp -- [--client all|codex|cursor|claude-code|claude-desktop] [--machine-name "Laptop name"] [--url SERVICE_ORIGIN] [--configure-only]';
+  if (args.includes('--help')) { process.stdout.write(`${usage}\nLaptop names label registrations; they do not lock credentials to hardware. Run setup on the laptop that will launch the client.\n`); return; }
+  let client = 'all', url = process.env.WORKTETHER_URL || 'http://127.0.0.1:4318', configureOnly = false, machineName: string | undefined;
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--configure-only') configureOnly = true;
     else if (args[i] === '--client' && args[i + 1]) client = args[++i];
     else if (args[i] === '--url' && args[i + 1]) url = args[++i];
-    else throw new Error('Usage: setup:mcp [--client all|codex|cursor|claude-code|claude-desktop] [--url SERVICE_ORIGIN] [--configure-only]');
+    else if (args[i] === '--machine-name' && args[i + 1]) machineName = args[++i];
+    else throw new Error(usage);
   }
   const selected = client === 'all' ? clients : clients.filter(item => item === client);
   if (!selected.length) throw new Error('Unknown client. Choose codex, cursor, claude-code, claude-desktop, or all.');
+  machineLabel(machineName);
   const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
   const token = configureOnly ? undefined : process.env.WORKTETHER_MCP_TOKEN || await hiddenToken();
-  const result = await setupConnections({ root, selected, url, token, configureOnly });
+  const result = await setupConnections({ root, selected, url, token, configureOnly, machineName });
   process.stdout.write(`${result.activated ? 'Personal connections activated' : 'Configuration generated; sign-in/credential setup still required'}.\n`);
   for (const plan of result.plans) process.stdout.write(`${plan.client}: ${plan.path}\n`);
   process.stdout.write('Open/trust this WorkTether folder in Codex, Cursor or Claude Code and reconnect MCP. Merge the generated Claude Desktop entry into its local server configuration, then restart Desktop.\n');
@@ -92,7 +97,7 @@ async function main() {
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   main().catch(error => {
-    process.stderr.write(error instanceof SetupCleanupError ? `${error.message}\n` : 'WorkTether setup failed. Check the service, credential, selected client and existing config files. Run from an interactive terminal; secrets are never printed.\n');
+    process.stderr.write(error instanceof SetupCleanupError ? `${error.message}\n` : 'WorkTether setup failed. Check the service, credential, laptop name, selected client and existing config files. Use --help for options. Run from an interactive terminal; secrets are never printed.\n');
     process.exitCode = 1;
   });
 }

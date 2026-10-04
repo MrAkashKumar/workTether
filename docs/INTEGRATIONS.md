@@ -1,6 +1,6 @@
 # Codex, Cursor, and Claude integrations
 
-Version 0.4 · 5 October 2026; official references checked 4 October 2026. **Configuration documented is not client certification.** Current verification uses real SDK clients over HTTP and spawned stdio processes on this Mac. Setup generates local project configs; global installed-client settings have not been changed.
+Version 0.5 · 5 October 2026; Codex/Cursor/Claude Code MCP and hooks references rechecked 5 October 2026. **Configuration documented is not client certification.** Current verification uses real SDK clients over HTTP and spawned stdio processes on this Mac. Setup generates local project configs; global installed-client settings have not been changed.
 
 ## 1 Compatibility and capability matrix
 
@@ -30,6 +30,8 @@ Use `--client codex|cursor|claude-code|claude-desktop` for one client, and `--ur
 `npm run check:stdio` verifies the live bridge with a temporary revoked credential and another working directory. Tests also check pinned modern protocol negotiation, private access, stable conversation capture, conflicts, revocation, config preservation, and secret-free startup failures.
 
 If setup fails after provisioning starts, it attempts to revoke its new connections and remove its new credential files. If cleanup also fails, follow the displayed recovery message: revoke the new client/device registrations in Connections and review local credential/config files before retrying. A connection label alone does not establish successful setup.
+
+For a particular laptop, add `--machine-name "Akash MacBook"`. The command runs on the laptop that launches the client, using that laptop's absolute paths; names are registration labels, not hardware locks. Connections builds this command with its laptop-name field. See [LAPTOP_SETUP.md](LAPTOP_SETUP.md) for Windows, custom ports, another project folder, reconfiguration, and shared-hosting limits. Use [CONVERSATION_TRACKING.md](CONVERSATION_TRACKING.md) after discovery; MCP installation itself does not track every chat.
 
 ## 2A Direct HTTP setup
 

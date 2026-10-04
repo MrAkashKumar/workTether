@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { AlertTriangle, Check, ClipboardList, Clock3, Copy, GitBranch, Inbox, LayoutDashboard, MoreHorizontal, Plug, Plus, ShieldCheck, Users } from 'lucide-react';
 import { Panel, Status } from './components';
 import type { Entity } from './api';
+import { FeatureBanner, ClientBadge } from './ui';
 
 const mainNavigation = [
   { id: 'overview', label: 'Overview', Icon: LayoutDashboard },
@@ -61,17 +62,19 @@ const aiClients = [
 
 export function ClientSetup({ createCredential, registerDevice, copy }: { createCredential: (setup: boolean) => void; registerDevice: () => void; copy: (value: string) => void }) {
   const [client, setClient] = useState('all');
-  const command = `npm run setup:mcp -- --client ${client}`;
-  return <Panel title="Connect your AI client" className="setup-panel">
+  const [laptopName, setLaptopName] = useState('');
+  const nameValid = !laptopName.trim() || /^[A-Za-z0-9][A-Za-z0-9 ._-]{0,63}$/.test(laptopName.trim());
+  const command = nameValid ? `npm run setup:mcp -- --client ${client}${laptopName.trim() ? ` --machine-name "${laptopName.trim()}"` : ''}` : '';
+  return <><FeatureBanner eyebrow="YOUR LAPTOP · YOUR ACCOUNT" title="Connect once. Continue anywhere in this workspace." Icon={Plug} tone="teal"><p>Choose your client, name this laptop, and keep one identity across your work.</p><div className="client-badge-row">{['codex', 'cursor', 'claude-code'].map(name => <ClientBadge key={name} client={name} />)}</div></FeatureBanner><Panel title="Connect your AI client" className="setup-panel">
     <div className="connection-setup">
       <p className="muted">Use the same work and saved context in Codex, Cursor, or Claude.</p>
       <ol className="setup-guide">
         <li><span className="step-number">1</span><div><h3>Create a setup credential</h3><p>Use your own account. Copy the credential when it is shown.</p><button className="primary" onClick={() => createCredential(true)}><ShieldCheck size={16} />Create setup credential</button></div></li>
-        <li><span className="step-number">2</span><div><h3>Run setup in a terminal</h3><label className="client-choice">AI client<select value={client} onChange={event => setClient(event.target.value)}>{aiClients.map(item => <option value={item.id} key={item.id}>{item.label}</option>)}</select></label><p>From the WorkTether folder, run this command. Paste the credential at the hidden prompt.</p><div className="command-field"><code>{command}</code><button className="icon-button" aria-label="Copy setup command" onClick={() => copy(command)}><Copy size={17} /></button></div><p className="small muted">Setup creates a separate registration and credential for each selected client. Keep the WorkTether server running.</p></div></li>
+        <li><span className="step-number">2</span><div><h3>Run setup on this laptop</h3><div className="setup-choices"><label className="field">AI client<select value={client} onChange={event => setClient(event.target.value)}>{aiClients.map(item => <option value={item.id} key={item.id}>{item.label}</option>)}</select></label><label className="field">Laptop name <span className="small muted">Optional</span><input value={laptopName} maxLength={64} placeholder="e.g. Akash MacBook" aria-invalid={!nameValid} aria-describedby="laptop-name-help" onChange={event => setLaptopName(event.target.value)} /></label></div><p className={`small ${nameValid ? 'muted' : 'form-error'}`} id="laptop-name-help">Letters, numbers, spaces, dots, underscores or hyphens. This is a label, not a hardware lock.</p><p>From the WorkTether folder on the laptop using the client, run this command. Paste the credential at the hidden prompt.</p><div className="command-field"><code>{command || 'Enter a valid laptop name to show the command.'}</code><button className="icon-button" disabled={!nameValid} aria-label="Copy setup command" onClick={() => copy(command)}><Copy size={17} /></button></div><p className="small muted">Setup creates a separate registration and credential for each selected client, using paths from this laptop. Keep the WorkTether server running.</p></div></li>
         <li><span className="step-number">3</span><div><h3>Open your client and reconnect MCP</h3><p>Open and trust the WorkTether folder in your client. Ask it to retrieve your workspace or continue a Work ID.</p>{['all', 'claude-desktop'].includes(client) && <p className="small muted">For Claude Desktop, merge the entry from <code>.worktether/claude-desktop-config.json</code> into its local server config and restart Desktop. See README.md for the full guide.</p>}<p className="small muted">Verify that the client returns your own account and permitted work. A registration alone does not prove a connection.</p></div></li>
       </ol>
       <div className="setup-note"><Check size={17} /><p>Work stays private unless you share it. MCP uses explicitly recorded information; prepare prompts in the work’s Prompt builder. Automatic chat capture remains planned.</p></div>
       <details className="advanced-setup"><summary>Advanced: manual MCP configuration</summary><p className="small muted">For clients you configure by hand, register a client and create its credential. The endpoint below is the default local address; use your configured port if different.</p><div className="command-field"><code>http://127.0.0.1:4318/mcp</code><button className="icon-button" aria-label="Copy MCP endpoint" onClick={() => copy('http://127.0.0.1:4318/mcp')}><Copy size={17} /></button></div><div className="row"><button className="secondary" onClick={registerDevice}><Plus size={16} />Register client manually</button><button className="secondary" onClick={() => createCredential(false)}>Create client credential</button></div><p className="small muted">Use the endpoint and a personal Bearer credential. Sharing across physical machines requires the documented shared deployment.</p></details>
     </div>
-  </Panel>;
+  </Panel></>;
 }

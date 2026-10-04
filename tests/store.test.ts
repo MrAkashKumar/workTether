@@ -369,7 +369,10 @@ test('concurrent source corrections conflict and review evidence is retained in 
 test('durable conversation IDs link deliberate captures across sessions without impersonating collaborators', () => {
   const f = fixture(); try {
     const work = createWork(f);
-    const first = f.store.execute(f.akash.user.id, 'create_conversation', { workId: work.id, title: 'Planning conversation', clientReference: 'client-session-one' });
+    const first = f.store.execute(f.akash.user.id, 'create_conversation', { workId: work.id, title: 'Planning conversation', client: 'codex', machineName: 'Akash MacBook', clientReference: 'client-session-one' });
+    assert.equal(first.ownerId, f.akash.user.id); assert.equal(first.client, 'codex'); assert.equal(first.machineName, 'Akash MacBook');
+    assert.throws(() => f.store.execute(f.akash.user.id, 'create_conversation', {workId: work.id, title: 'Invalid label', client: 'x'.repeat(101)}), errorCode('INVALID_INPUT'));
+    assert.throws(() => f.store.execute(f.akash.user.id, 'create_conversation', {workId: work.id, title: 'Invalid laptop', machineName: 'x'.repeat(65)}), errorCode('INVALID_INPUT'));
     const prompt = f.store.execute(f.akash.user.id, 'add_source', { workId: work.id, conversationId: first.id, kind: 'prompt', title: 'Selected request', content: 'Capture only this selected request.', status: 'accepted' });
     const second = f.store.execute(f.akash.user.id, 'create_conversation', { workId: work.id, title: 'Continuation conversation', clientReference: 'client-session-two' });
     const summary = f.store.execute(f.akash.user.id, 'add_source', { workId: work.id, conversationId: second.id, kind: 'summary', title: 'Continuing summary', content: 'Continue the same work from the selected request.', status: 'accepted', dependsOn: [prompt.id] });
@@ -382,6 +385,7 @@ test('durable conversation IDs link deliberate captures across sessions without 
     f.restart();
     const conversations = f.store.execute(f.akash.user.id, 'list_conversations', { workId: work.id });
     assert.equal(conversations.total, 3); assert.ok(conversations.items.some((c: any) => c.id === first.id && c.clientReference === 'client-session-one'));
+    assert.equal(conversations.items.find((c: any) => c.id === first.id).machineName, 'Akash MacBook');
     const context = f.store.execute(f.akash.user.id, 'get_context', { workId: work.id });
     assert.equal(context.sources.find((s: any) => s.id === summary.id).conversationId, second.id);
     assert.equal(context.sources.find((s: any) => s.id === prompt.id).conversationId, first.id);

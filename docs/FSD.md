@@ -1,6 +1,6 @@
 # Functional Specification Document
 
-Version 0.4 · 5 October 2026. This document specifies the current prototype and separately names proposed L2 contracts. [PRD](PRD.md) is the product baseline; [architecture](ARCHITECTURE.md) explains the components. Code references below are implementation evidence, not configuration files to copy into a client.
+Version 0.5 · 5 October 2026. This document specifies the current prototype and separately names proposed L2 contracts. [PRD](PRD.md) is the product baseline; [architecture](ARCHITECTURE.md) explains the components. Code references below are implementation evidence, not configuration files to copy into a client.
 
 ## 1 Current components and invariants
 
@@ -28,13 +28,15 @@ The local stdio bridge connects to that endpoint with its personal credential an
 
 The setup CLI creates a device/credential for each selected client and writes absolute-path launch configurations. Client configs contain credential-file paths; ignored connection files contain the raw tokens in plaintext (0600 files and 0700 directories on POSIX, OS ACLs on Windows). Server-side tokens remain hashed. Setup preserves unrelated config entries, rejects conflicts, and attempts to revoke new connections/remove its new credential files if setup fails. Failed cleanup produces an explicit dashboard/local-file recovery message. No global client config, OS keychain, native chat adapter, or automatic prompt rewrite is installed.
 
+Setup accepts `--machine-name` with a trimmed 1–64 character ASCII label (letters/numbers/spaces/dots/underscores/hyphens), defaulting to `this machine`. Validation occurs before provisioning or hidden credential input. Registration and credential names carry the label; the local connection file stores it as metadata. It is not a hardware-bound credential. `--help` prints options without setup. Browser conversation labels are independently supplied metadata, not an automatic match to that registration.
+
 ## 3 Record specification
 
 | Entity | Current core fields / behavior |
 | --- | --- |
 | Project | `id`, owner, name, objective, requirements, `revision`; membership separate. |
 | Work | `id`, `projectId`, owner, title, objective, next action, status, visibility, `revision`, `needsReview`, reviewed project revision. |
-| Conversation | `id`, `workId`, `ownerId`, title, `clientReference` or null, creation time. |
+| Conversation | `id`, `workId`, authenticated `ownerId`, title, optional supplied `client`, `machineName` and `clientReference`, creation time. Labels do not establish hardware/native-session identity. |
 | Source | `id`, `workId`, optional conversation, kind, title/content, author, state, `active`, revision, timestamps, supersession/review metadata. |
 | Edge | Identified directed relationship; dependency, correction/supersession, or graph containment as applicable. |
 | Revision | Immutable snapshot keyed by entity, record ID, and revision number. |
@@ -70,7 +72,7 @@ Names match the 20 registrations in `server/mcp.ts`. `?` means optional; inputs 
 | `list_inbox` | `offset?/limit?` | Recipient metadata page, without full payload. |
 | `get_handoff` | `handoffId` | Authorized selected snapshot; recipient retrieval changes receipt state. |
 | `acknowledge_handoff` | `handoffId` | Recipient acknowledges receipt; no execution or task-completion implication. |
-| `create_conversation` | `workId`, `title`, `clientReference?` | New `conv_…` record; work edit permission, authenticated owner attribution. |
+| `create_conversation` | `workId`, `title`, `client?` (max 100), `machineName?` (max 64), `clientReference?` (max 1,000) | New `conv_…` record; work edit permission, authenticated owner attribution; optional user-supplied labels/reference. |
 | `list_conversations` | `workId`, `offset?/limit?` | Conversation metadata for accessible work, including collaborators' records in that work. |
 | `get_context_snapshot` | `contextId` | `{snapshot, stale}` under current work access; historical content remains immutable. |
 | `set_source_active` | `sourceId`, `expectedRevision`, `active`, `reason` | Exclude or restore a current source; history and dependency review preserved. |

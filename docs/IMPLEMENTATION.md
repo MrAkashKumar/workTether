@@ -44,6 +44,12 @@ The [benchmark report](benchmark-results.json) records the machine, workload, sa
 - There is one local workspace, with multiple projects/users. Organization-level tenancy, subscriptions and hosted operations are future work.
 - Neither a huge context window nor this architecture guarantees correct or unbiased model behavior. The product makes requirements, selected context, revisions and evidence inspectable so users can correct direction.
 
+## Conversation and laptop refinement
+
+The Conversations work tab shows 50 records per page, client/laptop labels, author attribution, full-ID copy and distinct new-chat/resume instructions. A selected own conversation is visible across work tabs for new sources/drafts. Optional `client` and `machineName` fields are validated and retained with conversation records; missing labels on existing records stay unknown. Server ownership checks still control capture.
+
+Setup now accepts `--machine-name` and validates safe command labels before provisioning. Each client gets a separately named registration and credential, with paths generated on the executing laptop. There is no hardware attestation or automatic conversation-to-registration binding. Shared UI primitives and tokens are described in [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md). Setup/tracking instructions and screenshots are in the root README and new guides.
+
 ## Architecture boundaries
 
 `server/store.ts` owns authorization, durable records, atomic changes and context selection. `server/index.ts` owns local HTTP authentication, trusted hosts/origins, request limits and protected downloads. `server/mcp.ts` exposes typed tools and maps domain errors into structured MCP results. `server/prompts.ts` provides the local versioned projection/composer; Store owns draft privacy/freshness and reviewed source saving. `src/` renders permitted responses and deliberate actions; it does not make authorization decisions for the server.

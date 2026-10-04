@@ -3,7 +3,7 @@ import { join, resolve, dirname } from 'node:path';
 
 export const clients = ['codex', 'cursor', 'claude-code', 'claude-desktop'] as const;
 export type ClientName = typeof clients[number];
-export type Connection = { url: string; token: string; credentialId?: string; deviceId?: string; userId?: string; client?: string };
+export type Connection = { url: string; token: string; credentialId?: string; deviceId?: string; userId?: string; client?: string; machineName?: string };
 export type ConfigPlan = { client: ClientName; path: string; content: string; credentialPath: string };
 
 export function serviceUrl(value: string) {
@@ -15,6 +15,13 @@ export function serviceUrl(value: string) {
 }
 
 export function credentialPath(root: string, client: ClientName) { return join(resolve(root), '.worktether', 'connections', `${client}.json`); }
+
+export function machineLabel(value?: string) {
+  if (value === undefined) return 'this machine';
+  const label = value.trim();
+  if (!/^[A-Za-z0-9][A-Za-z0-9 ._-]{0,63}$/.test(label)) throw new Error('Laptop name must be 1–64 characters: letters, numbers, spaces, dots, underscores or hyphens.');
+  return label;
+}
 
 function rejectSymlinks(path: string) {
   let current = resolve(path);

@@ -4,6 +4,8 @@ Keep project requirements, useful sources, and next steps together across AI con
 
 Work is private by default. Share selected handoffs or grant work access deliberately. The new **Prompt builder** preserves your request and adds current project context for you to inspect and copy.
 
+![WorkTether local dashboard with sample project data](docs/assets/dashboard-refined.jpg)
+
 ## Project agenda
 
 1. **Now:** run locally, keep stable work IDs, review context and prepare prompts, and share selected handoffs.
@@ -39,10 +41,12 @@ Samples are examples. Create your own account and project for actual work. To st
 3. Open and trust this folder in your client, reconnect MCP, and verify that the returned workspace belongs to your account.
 
 ```sh
-npm run setup:mcp -- --client all
+npm run setup:mcp -- --client all --machine-name "Akash MacBook"
 ```
 
 Choose one client with `--client codex`, `cursor`, `claude-code`, or `claude-desktop`.
+
+Run setup **on the laptop that launches the client**. Change the laptop label to your own name, or omit `--machine-name`. Connections can build the command for you. The label identifies registrations; it does not lock credentials to hardware. The [laptop setup guide](docs/LAPTOP_SETUP.md) covers macOS/Windows, custom ports, another repository, and the shared-hosting boundary.
 
 | Client | Setup writes |
 | --- | --- |
@@ -68,6 +72,19 @@ See the [integration guide](docs/INTEGRATIONS.md) for Desktop's merge step, dire
 The [prompt builder guide](docs/PROMPT_BUILDER.md) explains personal draft IDs, saved-source visibility, freshness, and provenance. The **Context** view also builds readable packages with complete JSON available to inspect or copy.
 
 Preparation runs locally without an external AI call. It adds a structured envelope; it does not rewrite meaning, automatically intercept chats, submit prompts, or verify facts. MCP installation does not supply the client's native chat ID. The [continuation template](docs/examples/continuation-instruction.md) is an optional manual instruction.
+
+## Track each conversation
+
+Keep the same **Work ID** for an ongoing objective. Give each **new chat** a separate **Conversation ID**; reuse that Conversation ID when resuming the same chat.
+
+1. Open **Work → Conversations → New conversation**. Record its title and optional client/laptop labels.
+2. The record is selected for your new sources and prompt drafts. Copy its **resume instruction** into the corresponding AI chat.
+3. Save selected excerpts, decisions or summaries with that Conversation ID, and retrieve fresh context before continuing.
+4. For a different chat/client, keep the Work ID and create another conversation. Alternatively, use **Copy new-chat instruction** to ask the connected client to create the record through MCP.
+
+![Conversation tracking with sample IDs and a manually supplied laptop label](docs/assets/conversation-tracking.jpg)
+
+Connecting MCP alone does **not** track every message. Current tracking is explicit; automatic native chat mapping needs a separate adapter. The [conversation guide](docs/CONVERSATION_TRACKING.md) includes the tool sequence, continuation rules, diagram and future capture architecture.
 
 ## Storage and limits
 
@@ -99,8 +116,10 @@ This README stays at the project root. Detailed documents are in `docs/`.
 | Problem, agenda, and product requirements | [BRD](docs/BRD.md), [PRD](docs/PRD.md) |
 | Components, contracts, and diagrams | [FSD](docs/FSD.md), [architecture](docs/ARCHITECTURE.md) |
 | Prompt preparation and continued identity | [Prompt builder](docs/PROMPT_BUILDER.md), [prompt/context lifecycle](docs/PROMPT_CONTEXT.md) |
+| Conversation tracking and specific laptop setup | [Conversations](docs/CONVERSATION_TRACKING.md), [laptop setup](docs/LAPTOP_SETUP.md) |
+| Reusable components and visual rules | [Design system](docs/DESIGN_SYSTEM.md) |
 | Client setup and access safeguards | [Integrations](docs/INTEGRATIONS.md), [guardrails](docs/GUARDRAILS.md) |
 | Evidence and next work | [Implementation](docs/IMPLEMENTATION.md), [validation](docs/VALIDATION.md), [roadmap](docs/ROADMAP.md), [hosting](docs/HOSTING.md) |
 | References and release history | [Sources](docs/SOURCES.md), [change history](docs/CHANGELOG.md) |
 
-Documentation version **0.4 · 5 October 2026**. WorkTether is a working name; name, domain, and trademark availability have not been established.
+Documentation version **0.5 · 5 October 2026**. WorkTether is a working name; name, domain, and trademark availability have not been established.
