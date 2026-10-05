@@ -1,9 +1,9 @@
 {
-  "checkedAt": "2026-10-04T17:20:36.321166+00:00",
-  "documentationVersion": "0.5",
-  "scope": "WorkTether README screenshot embeds, conversation/laptop/design guides, documentation, examples and local generated configs; runtime evidence recorded separately",
-  "markdownFiles": 19,
-  "relativeLinksChecked": 170,
+  "checkedAt": "2026-10-04T17:30:20.089300+00:00",
+  "documentationVersion": "0.6",
+  "scope": "Deployment runbook, README links and related documentation; local file/anchor/structure/template checks only. Earlier application verification retained.",
+  "markdownFiles": 20,
+  "relativeLinksChecked": 211,
   "missingRelativeLinks": [],
   "unbalancedCodeFences": [],
   "headingSpacingIssues": [],
@@ -95,14 +95,33 @@
   },
   "limitations": [
     "Mermaid blocks checked structurally, not rendered",
-    "Relative link file targets checked; individual heading anchors not certified",
     "Generated configuration syntax and local launch paths checked; actual third-party clients and Windows not certified",
     "Earlier benchmark retained without regeneration",
     "Client configuration is prepared; personal credential activation is pending",
     "Browser spot checks are not a formal accessibility audit",
     "Local preparation preserves original requests and adds context; semantic model quality, bias and token savings have not been evaluated",
     "Draft freshness compares current work/project revisions rather than every external dependency",
-    "Conversation and setup laptop/client labels are supplied metadata; automatic native mapping and hardware binding are not implemented"
+    "Conversation and setup laptop/client labels are supplied metadata; automatic native mapping and hardware binding are not implemented",
+    "Relative heading anchors checked with GitHub-style slug logic; rendered Markdown/Mermaid/client behavior not certified"
   ],
-  "conversationOptionalLabelsMatchCatalog": true
+  "conversationOptionalLabelsMatchCatalog": true,
+  "relativeHeadingAnchorsChecked": 11,
+  "invalidRelativeHeadingAnchors": [],
+  "deploymentInlineExamplesParsed": {
+    "json": 1,
+    "toml": 1
+  },
+  "deploymentExampleSyntaxErrors": [],
+  "deploymentArchitectureDiagrams": 1,
+  "deploymentVerification": {
+    "runtimeChanges": false,
+    "applicationChecksRerun": false,
+    "earlierApplicationEvidenceVersion": "0.5",
+    "localRuntimeProfile": "loopback only; inspected in server/index.ts",
+    "privateSshPilot": "documented; remote-machine execution pending",
+    "hostedProfileAndOauth": "not implemented",
+    "publicService": "not deployed",
+    "hostedClientExamples": "syntax checked; placeholder URLs; requires future hosted profile",
+    "externalReferences": "official pages checked 5 October 2026; no real-client certification"
+  }
 }

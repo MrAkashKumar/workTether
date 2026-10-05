@@ -1,5 +1,13 @@
 # Documentation change history
 
+## 0.6 — 5 October 2026
+
+- Added [deploy.md](deploy.md) with local installation, a private SSH shared-pilot procedure, public hosting implementation requirements, staging/migration/recovery and release gates, and personal hosted connections for Codex, Cursor, Claude and ChatGPT.
+- Linked deployment prominently from the root README and related guides. Added the hosted architecture diagram and explicit start/resume/prompt preparation workflow.
+- Clarified that the current runtime is loopback-only, static credentials are not hosted OAuth, HTTPS acceptance in the setup CLI is not hosted enrollment, and public hosting is separate from marketplace distribution.
+- Corrected the hosting guide's stale statement about prompt preparation: explicit local preparation exists; native automatic capture/interception/delivery remain planned.
+- Documentation-only revision. No runtime behavior or client configuration changed, no credentials activated and no service publicly deployed. Earlier application test/build evidence is retained; SSH/hosted/actual-client certification remains pending.
+
 ## 0.5 — 5 October 2026
 
 - Added a dedicated Conversations view with supplied client/laptop labels, author attribution, full-ID copying, pagination and distinct start/resume instructions. Selected own conversation attribution remains visible across work tabs.

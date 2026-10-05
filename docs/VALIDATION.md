@@ -2,6 +2,8 @@
 
 Version 0.5 · 5 October 2026. Evidence below is the current application verification from this local build. This release adds dedicated conversation tracking, laptop setup labels, reusable UI components and screenshot guides. Protocol/setup tests do not certify actual third-party host UIs, hooks, or semantic prompt quality.
 
+Documentation revision 0.6 adds the [deployment runbook](deploy.md), README links and current official hosted-connection references without runtime changes. Earlier application evidence below is retained, not rerun for that prose-only change. The private SSH pilot, hosted OAuth/service, external clients and public deployment remain unverified/not implemented as marked in the runbook.
+
 ## Evidence summary
 
 | Evidence | Recorded result / scope |

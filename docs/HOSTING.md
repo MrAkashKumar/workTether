@@ -1,6 +1,6 @@
 # Path to shared hosting
 
-Status: planned L3 architecture, 4 October 2026. Related: [PRD](PRD.md), [architecture diagrams](ARCHITECTURE.md), [integration routes](INTEGRATIONS.md), [guardrails](GUARDRAILS.md), and [roadmap](ROADMAP.md).
+Status: planned L3 architecture, updated 5 October 2026. Start with the [deployment runbook](deploy.md) for current local setup, the unverified private SSH pilot and gated public deployment steps. Related: [PRD](PRD.md), [architecture diagrams](ARCHITECTURE.md), [integration routes](INTEGRATIONS.md), [guardrails](GUARDRAILS.md), and [roadmap](ROADMAP.md).
 
 The local release deliberately binds to `127.0.0.1`, accepts loopback hosts and trusted local browser origins, and uses local passwords and static credentials. It is not a public deployment configuration. To collaborate from several physical computers, deploy **one shared service**; each person authenticates, registers their clients and connects to its HTTPS MCP endpoint. Do not attempt to synchronize independent SQLite files between laptops.
 
@@ -21,7 +21,7 @@ flowchart LR
 
 Devices identify connection locations; authenticated people own work. Projects define membership. Read/edit grants and selected handoffs are distinct. A shared MCP installation is not authorization to read every person's work or run code on their machines.
 
-Local Codex/Cursor/Claude Code clients and cloud-origin Claude connectors have different network paths. Certify each claimed route against the hosted endpoint with the correct personal identity. Shipping one URL does not implement native chat mapping or prompt preparation; those remain separate L2 adapter features.
+Local Codex/Cursor/Claude Code clients and cloud-origin chat connectors have different network paths. Certify each claimed route against the hosted endpoint with the correct personal identity. Local explicit prompt preparation is implemented. Shipping one URL does not implement automatic native chat mapping, prompt interception or delivery; those remain separate adapter features.
 
 ## Migration sequence
 

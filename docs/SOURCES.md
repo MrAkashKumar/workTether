@@ -2,6 +2,8 @@
 
 Official references initially checked 4 October 2026. Codex, Cursor and Claude Code MCP/hooks pages were rechecked 5 October 2026 for laptop scopes and native identifiers; remaining references retain their earlier check date. Client behavior can change; recheck the relevant version before implementation or certification. URLs may redirect from earlier vendor documentation domains. These sources explain host/protocol capability, not proof that WorkTether integrations have been tested.
 
+The deployment guide rechecked Codex MCP, Cursor MCP, Claude Code MCP, Claude remote connectors and the current MCP authorization specification on 5 October 2026, and checked the OpenAI hosting/connection/submission pages and OpenSSH manual below. Local documentation checks do not establish a running remote deployment.
+
 | Reference | Used for |
 | --- | --- |
 | [OpenAI MCP configuration](https://learn.chatgpt.com/docs/extend/mcp?surface=cli) | Local Codex URL/Bearer configuration and executor scope. |
@@ -19,6 +21,11 @@ Official references initially checked 4 October 2026. Codex, Cursor and Claude C
 
 - [Official SDK stdio guidance](https://github.com/modelcontextprotocol/typescript-sdk/blob/main/docs/serving/stdio.md): serving the local bridge across protocol eras.
 - [Official local Claude Desktop connection guide](https://modelcontextprotocol.io/docs/2026-07-28/develop/connect-local-servers): manual local server configuration.
+- [OpenAI connection and testing](https://developers.openai.com/plugins/deploy/connect-chatgpt): current developer-mode route, remote connection and tool evaluation; account/workspace policy applies.
+- [OpenAI deployment troubleshooting](https://developers.openai.com/plugins/deploy/troubleshooting): streaming-aware proxy behavior.
+- [OpenAI plugin submission](https://developers.openai.com/plugins/deploy/submission): distribution/review is separate from hosting.
+- [OpenAI remote MCP API](https://developers.openai.com/api/docs/guides/tools-connectors-mcp): an API application's remote tool and authorization integration.
+- [OpenSSH manual](https://man.openbsd.org/ssh): local forwarding syntax for the private pilot; the WorkTether pilot has not been executed.
 
 ## Implementation evidence
 

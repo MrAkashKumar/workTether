@@ -4,6 +4,8 @@ Keep project requirements, useful sources, and next steps together across AI con
 
 Work is private by default. Share selected handoffs or grant work access deliberately. The new **Prompt builder** preserves your request and adds current project context for you to inspect and copy.
 
+**Deploy or connect from another system:** follow the [step-by-step deployment and MCP guide](docs/deploy.md). Local MCP is implemented; public HTTPS hosting and per-person OAuth remain a separate implementation milestone.
+
 ![WorkTether local dashboard with sample project data](docs/assets/dashboard-refined.jpg)
 
 ## Project agenda
@@ -61,6 +63,17 @@ The generated configurations use absolute local paths. Personal plaintext creden
 
 See the [integration guide](docs/INTEGRATIONS.md) for Desktop's merge step, direct HTTP configuration, custom ports, moved folders, and recovery. SDK transport tests pass; certification inside the actual Codex, Cursor, and Claude applications remains pending.
 
+## Deploy for other people
+
+Use **one shared service** to keep Work and Conversation IDs consistent across laptops, with each person using their own identity and deliberate work access.
+
+1. Verify local setup first. The [deployment guide](docs/deploy.md#1-run-and-connect-on-one-laptop) covers installation and client connection.
+2. For a small trusted group, the guide documents a [private SSH pilot](docs/deploy.md#2-private-shared-pilot-over-ssh) using the existing loopback server. That multi-machine procedure still needs verification.
+3. For public use, implement the [hosted profile](docs/deploy.md#3-build-the-public-hosting-profile), including OAuth, explicit HTTPS hosts, shared storage and recovery; then follow the staging, verification and release steps.
+4. Once an operator supplies a real hosted URL, users follow the [Codex, Cursor, Claude and ChatGPT connection steps](docs/deploy.md#5-connect-to-the-hosted-mcp-from-chat-or-an-editor). Direct HTTP users do not need a local backend/database.
+
+The current release has no public deployment configuration or live public URL. Cloud chat connectors cannot reach this laptop through `127.0.0.1`. Public reachability still requires personal authorization; it does not make private records public. See [hosting architecture](docs/HOSTING.md) for migration details.
+
 ## Your first workflow
 
 1. Create a project, record its goal and requirements, and create a work item. Keep its full **Work ID**.
@@ -90,7 +103,7 @@ Connecting MCP alone does **not** track every message. Current tracking is expli
 
 Data defaults to `data/worktether.sqlite`, relative to the process working directory. Keep the database, WAL sidecars, credentials, and build output out of version control. Use SQLite online backup or stop writes before copying the database. Detailed settings are in the [environment template](docs/examples/local.env.example); the server reads process environment and does not automatically load `.env`.
 
-The service binds to this computer's loopback address. Other physical machines need the planned [shared deployment](docs/HOSTING.md), with their own identities. Do not synchronize independent SQLite files to simulate collaboration.
+The service binds to this computer's loopback address. Other physical machines can use the documented private pilot or the planned hosted service, with their own identities; see [deployment](docs/deploy.md). Do not synchronize independent SQLite files to simulate collaboration.
 
 Current limits include JSON-record scans, bounded pages and graphs, no automatic attachment parsing, no user export/deletion UI, and unverified hosted capacity. Drafts persist locally; review what you enter. Copying a prepared prompt to an AI provider is your separate choice. Revocation blocks future service retrieval and cannot recall copied text. GitHub, hosted OAuth, native adapters, and remote execution remain future work.
 
@@ -119,7 +132,8 @@ This README stays at the project root. Detailed documents are in `docs/`.
 | Conversation tracking and specific laptop setup | [Conversations](docs/CONVERSATION_TRACKING.md), [laptop setup](docs/LAPTOP_SETUP.md) |
 | Reusable components and visual rules | [Design system](docs/DESIGN_SYSTEM.md) |
 | Client setup and access safeguards | [Integrations](docs/INTEGRATIONS.md), [guardrails](docs/GUARDRAILS.md) |
+| Local, private shared and public MCP deployment | [Step-by-step deployment](docs/deploy.md), [hosting architecture](docs/HOSTING.md) |
 | Evidence and next work | [Implementation](docs/IMPLEMENTATION.md), [validation](docs/VALIDATION.md), [roadmap](docs/ROADMAP.md), [hosting](docs/HOSTING.md) |
 | References and release history | [Sources](docs/SOURCES.md), [change history](docs/CHANGELOG.md) |
 
-Documentation version **0.5 · 5 October 2026**. WorkTether is a working name; name, domain, and trademark availability have not been established.
+Documentation version **0.6 · 5 October 2026**. WorkTether is a working name; name, domain, and trademark availability have not been established.

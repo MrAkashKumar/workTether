@@ -84,7 +84,7 @@ The bridge appends `/mcp`. Process environment is explicit; WorkTether does not 
 
 Installing another independent local service is possible, but it creates a separate database/workspace. Copying personal configs or SQLite files is not a collaboration solution. `127.0.0.1` always refers to the machine executing the client or bridge; a cloud executor cannot reach this laptop through that address.
 
-The shared-hosting target uses one reachable HTTPS API/MCP service, production identity, indexed storage, backups and per-person authorization. Each laptop will then get its own local client registration/credential against that shared service; Work IDs remain in the authoritative shared database. The bridge accepts an HTTPS origin, but the current loopback server and credentials do **not** establish a production-ready hosted deployment. [HOSTING.md](HOSTING.md) records the required work.
+The [deployment guide](deploy.md) documents a private SSH pilot that keeps one shared service on loopback; the separate-machine procedure has not been certified. The shared-hosting target uses one reachable HTTPS API/MCP service, production identity, indexed storage, backups and per-person authorization. Work IDs remain in the authoritative shared database. Direct HTTP clients can use personal hosted OAuth without a local WorkTether backend; using a local bridge instead requires separately implemented hosted enrollment compatibility. The bridge accepts an HTTPS origin, but it currently supports static credentials rather than OAuth login/renewal. [HOSTING.md](HOSTING.md) records the required work.
 
 ## Verify and recover
 

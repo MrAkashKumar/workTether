@@ -2,6 +2,8 @@
 
 Version 0.5 · 5 October 2026; Codex/Cursor/Claude Code MCP and hooks references rechecked 5 October 2026. **Configuration documented is not client certification.** Current verification uses real SDK clients over HTTP and spawned stdio processes on this Mac. Setup generates local project configs; global installed-client settings have not been changed.
 
+For deployment and other users' installation, use [deploy.md](deploy.md): current local setup, a private SSH pilot procedure, public hosting prerequisites and future personal OAuth connections from editors/chat. Its hosted examples apply only after that profile is implemented; no live public URL exists in this release.
+
 ## 1 Compatibility and capability matrix
 
 | Surface | Intended WorkTether route | Current evidence / gap |
@@ -11,6 +13,7 @@ Version 0.5 · 5 October 2026; Codex/Cursor/Claude Code MCP and hooks references
 | Claude Code local | HTTP + personal header, or generated stdio bridge. | Official configuration route; actual host/version test pending. |
 | Claude Desktop local connector | Generated local stdio bridge entry. | Bridge implemented and SDK-tested; Desktop UI test pending; no `.mcpb` package. |
 | Claude web/Desktop/Cowork remote connector | Network-reachable shared MCP service and supported per-person authentication. | Hosted route planned; current loopback service cannot serve it. |
+| ChatGPT web custom MCP connection | Reachable hosted endpoint and account/workspace-supported connection/authorization. | Hosted route planned; web does not read local Codex config. See [deployment connection steps](deploy.md#5-connect-to-the-hosted-mcp-from-chat-or-an-editor). |
 | Other MCP clients | Verify transport, auth, tool schema, limits, and workflow. | No blanket compatibility claim. |
 
 The service currently offers **tools**, not MCP prompt templates, MCP resources, embedded Apps, hooks, push notifications, or automatic transcript capture. File uploading uses the browser/API; the MCP catalog can share selected existing attachment IDs but cannot upload arbitrary files itself.
